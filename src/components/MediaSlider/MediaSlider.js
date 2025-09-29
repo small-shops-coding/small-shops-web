@@ -1,4 +1,4 @@
-import React, { useRef, useCallback, useEffect } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { Swiper, SwiperSlide } from 'swiper/react';
 import { Navigation, Pagination, Keyboard, A11y } from 'swiper/modules';
 import classNames from 'classnames';
@@ -43,11 +43,11 @@ const AutoPlayVideo = ({ url, className }) => {
   );
 };
 
-const MediaSlider = ({ media = [], className, rootClassName }) => {
-  const isVideo = useCallback(url => {
-    return url.includes('video%2Fmp4') || url.includes('video/mp4');
-  }, []);
+const isVideo = url => {
+  return url.includes('video%2Fmp4') || url.includes('video/mp4');
+};
 
+const MediaSlider = ({ media = [], className, rootClassName }) => {
   if (!media || media.length === 0) {
     return null;
   }
