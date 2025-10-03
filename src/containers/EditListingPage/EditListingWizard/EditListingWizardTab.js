@@ -19,6 +19,7 @@ import EditListingPricingAndStockPanel from './EditListingPricingAndStockPanel/E
 import EditListingStylePanel from './EditListingStylePanel/EditListingStylePanel';
 
 import css from './EditListingWizardTab.module.css';
+import classNames from 'classnames';
 
 export const DETAILS = 'details';
 export const PRICING = 'pricing';
@@ -92,6 +93,7 @@ const EditListingWizardTab = props => {
     handlePublishListing,
     history,
     images,
+    variantsImages,
     listing,
     weeklyExceptionQueries,
     monthlyExceptionQueries,
@@ -105,6 +107,8 @@ const EditListingWizardTab = props => {
     onManageDisableScrolling,
     onListingTypeChange,
     onRemoveImage,
+    onUploadVariantsImage,
+    onRemoveVariantsImage,
     updatedTab,
     updateInProgress,
     tabSubmitButtonText,
@@ -162,10 +166,9 @@ const EditListingWizardTab = props => {
         // No need for extra actions
       });
   };
-
   const panelProps = tab => {
     return {
-      className: css.panel,
+      className: tab === PRICING_AND_STOCK ? classNames(css.panel, css.variantPanel) : css.panel,
       errors,
       listing,
       panelUpdated: updatedTab === tab,
@@ -201,6 +204,11 @@ const EditListingWizardTab = props => {
           {...panelProps(PRICING_AND_STOCK)}
           marketplaceCurrency={config.currency}
           listingMinimumPriceSubUnits={config.listingMinimumPriceSubUnits}
+          listingFieldsConfig={config.listing.listingFields}
+          listingImageConfig={config.layout.listingImage}
+          onUploadVariantsImage={onUploadVariantsImage}
+          onRemoveVariantsImage={onRemoveVariantsImage}
+          variantsImages={variantsImages}
         />
       );
     }

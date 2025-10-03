@@ -1,6 +1,7 @@
 const { transactionLineItems } = require('../api-util/lineItems');
 const { getSdk, handleError, serialize, fetchCommission } = require('../api-util/sdk');
 const { constructValidLineItems } = require('../api-util/lineItemHelpers');
+const { validateVariantStock } = require('../api-util/variants');
 
 module.exports = (req, res) => {
   const { isOwnListing, listingId, orderData } = req.body;
@@ -17,6 +18,8 @@ module.exports = (req, res) => {
 
       const { providerCommission, customerCommission } =
         commissionAsset?.type === 'jsonAsset' ? commissionAsset.attributes.data : {};
+
+      validateVariantStock(listing, orderData);
 
       const lineItems = transactionLineItems(
         listing,

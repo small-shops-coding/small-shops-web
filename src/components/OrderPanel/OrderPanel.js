@@ -116,11 +116,12 @@ const handleSubmit = (
   isInquiryWithoutPayment,
   onSubmit,
   history,
-  location
+  location,
+  preventOpenOrderModal
 ) => {
   // TODO: currently, inquiry-process does not have any form to ask more order data.
   // We can submit without opening any inquiry/order modal.
-  return isInquiryWithoutPayment
+  return isInquiryWithoutPayment || preventOpenOrderModal
     ? () => onSubmit({})
     : () => openOrderModal(isOwnListing, isClosed, history, location);
 };
@@ -258,6 +259,7 @@ const hasValidPriceVariants = priceVariants => {
  * @param {string} props.marketplaceCurrency - The currency used in the marketplace
  * @param {number} props.dayCountAvailableForBooking - Number of days available for booking
  * @param {string} props.marketplaceName - Name of the marketplace
+ * @param {Object} [props.listingFieldConfigs] - Listing field configs
  *
  * @returns {JSX.Element} Component that displays the order panel with appropriate form
  */
@@ -297,6 +299,8 @@ const OrderPanel = props => {
     fetchLineItemsError,
     payoutDetailsWarning,
     showListingImage,
+    listingFieldConfigs,
+    onSetSelectedVariant,
   } = props;
 
   const publicData = listing?.attributes?.publicData || {};
@@ -410,7 +414,7 @@ const OrderPanel = props => {
 
   const classes = classNames(rootClassName || css.root, className);
   const titleClasses = classNames(titleClassName || css.orderTitle);
-
+  const variants = listing?.attributes?.publicData?.variants || [];
   return (
     <div className={classes}>
       <ModalInMobile
@@ -508,6 +512,9 @@ const OrderPanel = props => {
             shippingEnabled={shippingEnabled && displayShipping}
             displayDeliveryMethod={displayPickup || displayShipping}
             onContactUser={onContactUser}
+            variants={variants}
+            listingFieldConfigs={listingFieldConfigs}
+            onSetSelectedVariant={onSetSelectedVariant}
             {...sharedProps}
           />
         ) : showInquiryForm ? (
@@ -540,7 +547,8 @@ const OrderPanel = props => {
               showInquiryForm,
               onSubmit,
               history,
-              location
+              location,
+              lineItemUnitType === LINE_ITEM_ITEM
             )}
             disabled={isOutOfStock}
           >

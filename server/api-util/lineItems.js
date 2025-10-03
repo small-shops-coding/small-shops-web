@@ -6,6 +6,7 @@ const {
   getCustomerCommissionMaybe,
 } = require('./lineItemHelpers');
 const { types } = require('sharetribe-flex-sdk');
+const { getVariant } = require('./variants');
 const { Money } = types;
 
 /**
@@ -145,12 +146,13 @@ exports.transactionLineItems = (listing, orderData, providerCommission, customer
     : null;
   const { priceInSubunits } = priceVariantConfig || {};
   const isPriceInSubunitsValid = Number.isInteger(priceInSubunits) && priceInSubunits >= 0;
-
-  const unitPrice =
-    isBookable && priceVariationsEnabled && isPriceInSubunitsValid
-      ? new Money(priceInSubunits, currency)
-      : priceAttribute;
-
+  const isOrderProduct = unitType === 'item';
+  const variantMaybe = isOrderProduct ? getVariant(listing, orderData) : null;
+  const unitPrice = variantMaybe
+    ? new Money(variantMaybe.priceAsSubunits, currency)
+    : isBookable && priceVariationsEnabled && isPriceInSubunitsValid
+    ? new Money(priceInSubunits, currency)
+    : priceAttribute;
   /**
    * Pricing starts with order's base price:
    * Listing's price is related to a single unit. It needs to be multiplied by quantity
@@ -162,20 +164,19 @@ exports.transactionLineItems = (listing, orderData, providerCommission, customer
    * - includedFor
    */
 
-  const code = `line-item/${unitType}`;
+  const code = isOrderProduct ? `line-item/${variantMaybe.sku}` : `line-item/${unitType}`;
 
   // Here "extra line-items" means line-items that are tied to unit type
   // E.g. by default, "shipping-fee" is tied to 'item' aka buying products.
-  const quantityAndExtraLineItems =
-    unitType === 'item'
-      ? getItemQuantityAndLineItems(orderData, publicData, currency)
-      : unitType === 'fixed'
-      ? getFixedQuantityAndLineItems(orderData)
-      : unitType === 'hour'
-      ? getHourQuantityAndLineItems(orderData)
-      : ['day', 'night'].includes(unitType)
-      ? getDateRangeQuantityAndLineItems(orderData, code)
-      : {};
+  const quantityAndExtraLineItems = isOrderProduct
+    ? getItemQuantityAndLineItems(orderData, publicData, currency)
+    : unitType === 'fixed'
+    ? getFixedQuantityAndLineItems(orderData)
+    : unitType === 'hour'
+    ? getHourQuantityAndLineItems(orderData)
+    : ['day', 'night'].includes(unitType)
+    ? getDateRangeQuantityAndLineItems(orderData, code)
+    : {};
 
   const { quantity, units, seats, extraLineItems } = quantityAndExtraLineItems;
 

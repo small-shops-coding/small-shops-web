@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import classNames from 'classnames';
 import ReactImageGallery from 'react-image-gallery';
 
@@ -59,12 +59,32 @@ const getFirstImageAspectRatio = (firstImage, scaledVariant) => {
  * @param {Array<propTypes.image>} props.images - The images
  * @param {Array<string>} props.imageVariants - The image variants
  * @param {Array<string>} props.thumbnailVariants - The thumbnail variants
+ * @param {string} [props.selectedVariantImageId] - The selected variant image id
  * @returns {JSX.Element} listing image gallery component
  */
 const ListingImageGallery = props => {
   const [isFullscreen, setIsFullscreen] = useState(false);
   const intl = useIntl();
-  const { rootClassName, className, images, imageVariants, thumbnailVariants } = props;
+  const ref = useRef(null);
+  const {
+    rootClassName,
+    className,
+    images,
+    imageVariants,
+    thumbnailVariants,
+    selectedVariantImageId,
+  } = props;
+
+  const selectedVariantImageIndex = images.findIndex(
+    item => item.id.uuid === selectedVariantImageId
+  );
+
+  useEffect(() => {
+    if (selectedVariantImageIndex !== -1 && ref.current) {
+      ref.current.slideToIndex(selectedVariantImageIndex);
+    }
+  }, [selectedVariantImageIndex]);
+
   const thumbVariants = thumbnailVariants || imageVariants;
   // imageVariants are scaled variants.
   const { aspectWidth, aspectHeight } = getFirstImageAspectRatio(images?.[0], imageVariants[0]);
@@ -173,6 +193,7 @@ const ListingImageGallery = props => {
 
   return (
     <ReactImageGallery
+      ref={ref}
       additionalClass={classes}
       items={items}
       renderItem={renderItem}

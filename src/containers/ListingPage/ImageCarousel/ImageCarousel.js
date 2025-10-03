@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import classNames from 'classnames';
 import ReactImageGallery from 'react-image-gallery';
 
@@ -36,7 +36,8 @@ const IMAGE_GALLERY_OPTIONS = {
 const ImageCarousel = props => {
   const [currentIndex, setIndex] = useState(0);
   const intl = useIntl();
-  const { rootClassName, className, images, imageVariants } = props;
+  const ref = useRef(null);
+  const { rootClassName, className, images, imageVariants, selectedVariantImageId } = props;
 
   const items = images.map((img, i) => {
     return {
@@ -107,10 +108,20 @@ const ImageCarousel = props => {
     ) : null;
 
   const classes = classNames(rootClassName || css.root, className);
+  const initialIndex = selectedVariantImageId
+    ? images.findIndex(item => item.id.uuid === selectedVariantImageId)
+    : null;
+  useEffect(() => {
+    if (!!initialIndex && ref.current) {
+      ref.current.slideToIndex(initialIndex);
+      setIndex(initialIndex);
+    }
+  }, [initialIndex]);
 
   return (
     <>
       <ReactImageGallery
+        ref={ref}
         additionalClass={classes}
         items={items}
         renderItem={renderItem}

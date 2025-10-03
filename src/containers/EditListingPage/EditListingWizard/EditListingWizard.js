@@ -255,7 +255,7 @@ const tabCompleted = (tab, listing, config) => {
     case PRICING:
       return !!price;
     case PRICING_AND_STOCK:
-      return !!price;
+      return !!publicData?.variants && publicData?.variants.length > 0;
     case DELIVERY:
       return !!deliveryOptionPicked;
     case LOCATION:

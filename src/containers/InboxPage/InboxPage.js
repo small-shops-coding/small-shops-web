@@ -159,15 +159,19 @@ export const InboxItem = props => {
     availabilityType,
     stockType = STOCK_MULTIPLE_ITEMS,
   } = props;
-  const { customer, provider, listing } = tx;
+  const { customer, provider, listing, attributes } = tx;
+  const { protectedData = {} } = attributes;
+  console.log(tx);
+  const { quantity: orderQuantity = 0 } = protectedData;
   const { processName, processState, actionNeeded, isSaleNotification, isFinal } = stateData;
   const isCustomer = transactionRole === TX_TRANSITION_ACTOR_CUSTOMER;
 
   const lineItems = tx.attributes?.lineItems;
   const hasPricingData = lineItems.length > 0;
   const unitLineItem = getUnitLineItem(lineItems);
-  const quantity = hasPricingData && !isBooking ? unitLineItem.quantity.toString() : null;
-  const showStock = stockType === STOCK_MULTIPLE_ITEMS || (quantity && unitLineItem.quantity > 1);
+
+  const quantity = hasPricingData && !isBooking ? orderQuantity?.toString() : null;
+  const showStock = stockType === STOCK_MULTIPLE_ITEMS || (quantity && unitLineItem?.quantity > 1);
   const otherUser = isCustomer ? provider : customer;
   const otherUserDisplayName = <UserDisplayName user={otherUser} intl={intl} />;
   const isOtherUserBanned = otherUser.attributes.banned;

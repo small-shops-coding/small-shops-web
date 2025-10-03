@@ -82,7 +82,6 @@ const EnhancedCheckoutPage = props => {
     const data = handlePageData(initialData, STORAGE_KEY, history);
     setPageData(data || {});
     setIsDataLoaded(true);
-
     // Do not fetch extra data if user is not active (E.g. they are in pending-approval state.)
     if (isUserAuthorized(currentUser)) {
       // This is for processes using payments with Stripe integration

@@ -68,6 +68,8 @@ export const SEND_INQUIRY_REQUEST = 'app/ListingPage/SEND_INQUIRY_REQUEST';
 export const SEND_INQUIRY_SUCCESS = 'app/ListingPage/SEND_INQUIRY_SUCCESS';
 export const SEND_INQUIRY_ERROR = 'app/ListingPage/SEND_INQUIRY_ERROR';
 
+export const SET_SELECTED_VARIANT = 'app/ListingPage/SET_SELECTED_VARIANT';
+
 // ================ Reducer ================ //
 
 const initialState = {
@@ -98,6 +100,7 @@ const initialState = {
   sendInquiryInProgress: false,
   sendInquiryError: null,
   inquiryModalOpenForListingId: null,
+  selectedVariant: null,
 };
 
 const listingPageReducer = (state = initialState, action = {}) => {
@@ -206,6 +209,9 @@ const listingPageReducer = (state = initialState, action = {}) => {
     case SEND_INQUIRY_ERROR:
       return { ...state, sendInquiryInProgress: false, sendInquiryError: payload };
 
+    case SET_SELECTED_VARIANT:
+      return { ...state, selectedVariant: payload };
+
     default:
       return state;
   }
@@ -229,6 +235,11 @@ export const showListingError = e => ({
   type: SHOW_LISTING_ERROR,
   error: true,
   payload: e,
+});
+
+export const setSelectedVariant = variant => ({
+  type: SET_SELECTED_VARIANT,
+  payload: variant,
 });
 
 export const fetchReviewsRequest = () => ({ type: FETCH_REVIEWS_REQUEST });
@@ -267,7 +278,10 @@ export const fetchTimeSlotsForDateError = (dateId, error) => ({
   payload: { dateId, error },
 });
 
-export const fetchLineItemsRequest = () => ({ type: FETCH_LINE_ITEMS_REQUEST });
+export const fetchLineItemsRequest = orderData => ({
+  type: FETCH_LINE_ITEMS_REQUEST,
+  payload: orderData,
+});
 export const fetchLineItemsSuccess = lineItems => ({
   type: FETCH_LINE_ITEMS_SUCCESS,
   payload: lineItems,
@@ -520,7 +534,7 @@ const fetchMonthlyTimeSlots = (dispatch, listing) => {
 };
 
 export const fetchTransactionLineItems = ({ orderData, listingId, isOwnListing }) => dispatch => {
-  dispatch(fetchLineItemsRequest());
+  dispatch(fetchLineItemsRequest(orderData));
   transactionLineItems({ orderData, listingId, isOwnListing })
     .then(response => {
       const lineItems = response.data;

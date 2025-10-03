@@ -100,6 +100,7 @@ export const loadData = (params, search) => (dispatch, getState, sdk) => {
       'payinTotal',
       'payoutTotal',
       'lineItems',
+      'protectedData',
     ],
     'fields.listing': ['title', 'availabilityPlan', 'publicData.listingType'],
     'fields.user': ['profile.displayName', 'profile.abbreviatedName', 'deleted', 'banned'],

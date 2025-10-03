@@ -22,10 +22,15 @@ const SectionHero = props => {
     onImageCarouselClose,
     onManageDisableScrolling,
     actionBar,
+    selectedVariantImageId,
   } = props;
 
   const hasImages = listing.images && listing.images.length > 0;
-  const firstImage = hasImages ? listing.images[0] : null;
+  const imageToShow = selectedVariantImageId
+    ? listing.images.find(image => image.id.uuid === selectedVariantImageId)
+    : listing.images[0];
+
+  const firstImage = hasImages ? imageToShow : null;
   const variants = firstImage
     ? Object.keys(firstImage?.attributes?.variants).filter(k => k.startsWith('scaled'))
     : [];
@@ -68,6 +73,7 @@ const SectionHero = props => {
       >
         <ImageCarousel
           images={listing.images}
+          selectedVariantImageId={selectedVariantImageId}
           imageVariants={['scaled-small', 'scaled-medium', 'scaled-large', 'scaled-xlarge']}
         />
       </Modal>

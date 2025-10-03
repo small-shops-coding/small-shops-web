@@ -180,13 +180,17 @@ export const ProfileSettingsPageComponent = props => {
       shopTitle,
       shopExtraInfo,
       shopMedia,
-      shopLocation: {
-        search: shopLocation.address || '',
-        selectedPlace: {
-          ...shopLocation,
-          origin: new LatLng(shopLocation.origin.lat, shopLocation.origin.lng),
-        },
-      },
+      ...(shopLocation
+        ? {
+            shopLocation: {
+              search: shopLocation.address,
+              selectedPlace: {
+                ...shopLocation,
+                origin: new LatLng(shopLocation.origin.lat, shopLocation.origin.lng),
+              },
+            },
+          }
+        : {}),
     }),
     [
       firstName,

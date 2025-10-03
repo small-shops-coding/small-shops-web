@@ -1,0 +1,129 @@
+.addVariantButton {
+  margin: 20px 0;
+  width: fit-content;
+}
+
+.variants {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.variant {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border: 1px solid var(--colorGrey200);
+  border-radius: 5px;
+  padding: 10px;
+}
+
+.variantName {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+}
+
+.variantNameSelect {
+  width: 100%;
+}
+
+.variantValues {
+  display: flex;
+  flex-direction: row;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.variantValueButton {
+  border-radius: 5px;
+  padding: 5px 10px;
+  cursor: pointer;
+  outline: 1px solid var(--colorGrey100);
+  &:hover {
+    text-decoration: none;
+    outline: 1px solid var(--colorGrey300);
+    background-color: var(--colorGrey100);
+  }
+}
+
+.variantValueButtonSelected {
+  outline: 1px solid var(--marketplaceColor);
+  background-color: var(--marketplaceColorLight);
+  color: var(--colorWhite);
+  &:hover {
+    background-color: var(--marketplaceColor);
+    color: var(--colorWhite);
+  }
+}
+
+.submitButton {
+  margin-top: 20px;
+}
+
+.variantInfoTable {
+  overflow: auto;
+}
+
+.variantInfoTableTable {
+  width: 100%;
+  border-collapse: collapse;
+  display: table;
+  table-layout: fixed;
+}
+
+.variantInfoTableTable thead th {
+  border: 1px solid var(--colorGrey100);
+  padding: 10px;
+  text-align: center;
+}
+
+.variantInfoTableTitle {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.variantInfoTableTable tbody td {
+  border: 1px solid var(--colorGrey100);
+  padding: 8px;
+  text-align: center;
+}
+
+.inputField {
+  width: 100%;
+  padding: 5px;
+  border-radius: 3px;
+  font-size: 14px;
+}
+
+.inputField:focus {
+  outline: none;
+  border-color: var(--marketplaceColor);
+}
+
+.nextButton,
+.backButton {
+  max-width: 200px;
+}
+
+.variantTypeStep {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.variantImage {
+  max-height: 200px;
+}
+
+.root {
+  overflow: hidden;
+}
+
+.variantInfoTableWrapper {
+  min-width: 1200px;
+  overflow: auto;
+}

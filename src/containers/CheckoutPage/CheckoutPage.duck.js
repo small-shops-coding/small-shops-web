@@ -194,12 +194,25 @@ export const initiateOrder = (
   // initiate.
   const isTransition = !!transactionId;
 
-  const { deliveryMethod, quantity, bookingDates, ...otherOrderParams } = orderParams;
+  const {
+    deliveryMethod,
+    quantity,
+    bookingDates,
+    color,
+    size,
+    material,
+    ...otherOrderParams
+  } = orderParams;
   const quantityMaybe = quantity ? { stockReservationQuantity: quantity } : {};
   const bookingParamsMaybe = bookingDates || {};
 
   // Parameters only for client app's server
-  const orderData = deliveryMethod ? { deliveryMethod } : {};
+  const orderData = {
+    ...(deliveryMethod ? { deliveryMethod } : {}),
+    ...(color ? { color } : {}),
+    ...(size ? { size } : {}),
+    ...(material ? { material } : {}),
+  };
 
   // Parameters for Marketplace API
   const transitionParams = {
@@ -404,6 +417,9 @@ export const speculateTransaction = (
     priceVariantName,
     quantity,
     bookingDates,
+    color,
+    size,
+    material,
     ...otherOrderParams
   } = orderParams;
   const quantityMaybe = quantity ? { stockReservationQuantity: quantity } : {};
@@ -413,6 +429,9 @@ export const speculateTransaction = (
   const orderData = {
     ...(deliveryMethod ? { deliveryMethod } : {}),
     ...(priceVariantName ? { priceVariantName } : {}),
+    ...(color ? { color } : {}),
+    ...(size ? { size } : {}),
+    ...(material ? { material } : {}),
   };
 
   // Parameters for Marketplace API
