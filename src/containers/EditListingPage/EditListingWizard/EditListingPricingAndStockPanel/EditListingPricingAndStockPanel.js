@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useMemo } from 'react';
 import classNames from 'classnames';
 
 // Import configs and util modules
 import { FormattedMessage } from '../../../../util/reactIntl';
-import { LISTING_STATE_DRAFT, STOCK_INFINITE_ITEMS, propTypes } from '../../../../util/types';
+import { LISTING_STATE_DRAFT, propTypes } from '../../../../util/types';
 import { types as sdkTypes } from '../../../../util/sdkLoader';
 import { isValidCurrencyForTransactionProcess } from '../../../../util/fieldHelpers';
 
@@ -11,42 +11,51 @@ import { isValidCurrencyForTransactionProcess } from '../../../../util/fieldHelp
 import { H3, ListingLink } from '../../../../components';
 
 // Import modules from this directory
-import EditListingPricingAndStockForm from './EditListingPricingAndStockForm';
 import css from './EditListingPricingAndStockPanel.module.css';
+import EditListingVariantsForm from './EditListingVariantsForm';
 
 const { Money } = sdkTypes;
-const BILLIARD = 1000000000000000;
 
 const getListingTypeConfig = (publicData, listingTypes) => {
   const selectedListingType = publicData.listingType;
   return listingTypes.find(conf => conf.listingType === selectedListingType);
 };
+const toAttributeGroups = variants => {
+  const allowedTypes = ['color', 'size', 'material'];
+  const typeToValues = {};
+  for (const v of variants) {
+    const attrs = v.attributes || {};
+    for (const type of allowedTypes) {
+      if (attrs[type]) {
+        if (!typeToValues[type]) typeToValues[type] = new Set();
+        typeToValues[type].add(String(attrs[type]));
+      }
+    }
+  }
+  return Object.entries(typeToValues).map(([type, valuesSet], index) => ({
+    id: index,
+    type,
+    values: Array.from(valuesSet),
+  }));
+};
 
-const getInitialValues = props => {
-  const { listing, listingTypes } = props;
-  const isPublished = listing?.id && listing?.attributes?.state !== LISTING_STATE_DRAFT;
-  const price = listing?.attributes?.price;
-  const currentStock = listing?.currentStock;
-
-  const publicData = listing?.attributes?.publicData;
-  const listingTypeConfig = getListingTypeConfig(publicData, listingTypes);
-  const hasInfiniteStock = STOCK_INFINITE_ITEMS.includes(listingTypeConfig?.stockType);
-
-  // The listing resource has a relationship: `currentStock`,
-  // which you should include when making API calls.
-  // Note: infinite stock is refilled to billiard using "stockUpdateMaybe"
-  const currentStockQuantity = currentStock?.attributes?.quantity;
-  const stock =
-    currentStockQuantity != null
-      ? currentStockQuantity
-      : isPublished
-      ? 0
-      : hasInfiniteStock
-      ? BILLIARD
-      : 1;
-  const stockTypeInfinity = [];
-
-  return { price, stock, stockTypeInfinity };
+const generateInitialValues = (listing, marketplaceCurrency) => {
+  const { variants = [] } = listing?.attributes?.publicData;
+  const listingImages = listing?.images || [];
+  if (variants.length > 0 && !!listing) {
+    return {
+      variants: toAttributeGroups(variants),
+      variantInfo: variants.map(variant => {
+        const { priceAsSubunits, imageId, ...rest } = variant;
+        const price = priceAsSubunits ? new Money(priceAsSubunits, marketplaceCurrency) : null;
+        const image = listingImages.find(image => image.id.uuid === variant.imageId);
+        return { ...rest, imageId: image, price };
+      }),
+    };
+  }
+  return {
+    variants: [],
+  };
 };
 
 /**
@@ -67,11 +76,18 @@ const getInitialValues = props => {
  * @param {boolean} props.panelUpdated - Whether the panel is updated
  * @param {boolean} props.updateInProgress - Whether the update is in progress
  * @param {Object} props.errors - The errors object
+ * @param {Object} props.listingFieldsConfig - The listing fields config
+ * @param {Object} props.listingImageConfig - The listing image config
+ * @param {number} props.listingImageConfig.aspectWidth - The aspect width
+ * @param {number} props.listingImageConfig.aspectHeight - The aspect height
+ * @param {string} props.listingImageConfig.variantPrefix - The variant prefix
+ * @param {Function} props.onUploadVariantsImage - The upload variants image function
+ * @param {Function} props.onRemoveVariantsImage - The remove variants image function
+ * @param {Object} props.variantsImages - The variants images
  * @returns {JSX.Element}
  */
 const EditListingPricingAndStockPanel = props => {
   // State is needed since re-rendering would overwrite the values during XHR call.
-  const [state, setState] = useState({ initialValues: getInitialValues(props) });
 
   const {
     className,
@@ -87,18 +103,20 @@ const EditListingPricingAndStockPanel = props => {
     panelUpdated,
     updateInProgress,
     errors,
+    listingFieldsConfig,
+    listingImageConfig,
+    onUploadVariantsImage,
+    onRemoveVariantsImage,
+    variantsImages,
   } = props;
 
   const classes = classNames(rootClassName || css.root, className);
-  const initialValues = state.initialValues;
 
   // Form needs to know data from listingType
   const publicData = listing?.attributes?.publicData;
   const unitType = publicData.unitType;
   const listingTypeConfig = getListingTypeConfig(publicData, listingTypes);
   const transactionProcessAlias = listingTypeConfig.transactionType.alias;
-
-  const hasInfiniteStock = STOCK_INFINITE_ITEMS.includes(listingTypeConfig?.stockType);
 
   const isPublished = listing?.id && listing?.attributes?.state !== LISTING_STATE_DRAFT;
 
@@ -109,6 +127,10 @@ const EditListingPricingAndStockPanel = props => {
     marketplaceCurrency,
     'stripe'
   );
+
+  const initialValues = useMemo(() => {
+    return generateInitialValues(listing, marketplaceCurrency);
+  }, [JSON.stringify(listing), JSON.stringify(marketplaceCurrency)]);
   const priceCurrencyValid = !isStripeCompatibleCurrency
     ? false
     : marketplaceCurrency && initialValues.price instanceof Money
@@ -131,54 +153,41 @@ const EditListingPricingAndStockPanel = props => {
         )}
       </H3>
       {priceCurrencyValid ? (
-        <EditListingPricingAndStockForm
+        <EditListingVariantsForm
           className={css.form}
           initialValues={initialValues}
           onSubmit={values => {
-            const { price, stock, stockTypeInfinity } = values;
-
-            // Update stock only if the value has changed, or stock is infinity in stockType,
-            // but not current stock is a small number (might happen with old listings)
-            // NOTE: this is going to be used on a separate call to API
-            // in EditListingPage.duck.js: sdk.stock.compareAndSet();
-
-            const hasStockTypeInfinityChecked = stockTypeInfinity?.[0] === 'infinity';
-            const hasNoCurrentStock = listing?.currentStock?.attributes?.quantity == null;
-            const hasStockQuantityChanged = stock && stock !== initialValues.stock;
-            // currentStockQuantity is null or undefined, return null - otherwise use the value
-            const oldTotal = hasNoCurrentStock ? null : initialValues.stock;
-            const stockUpdateMaybe =
-              hasInfiniteStock && (hasNoCurrentStock || hasStockTypeInfinityChecked)
-                ? {
-                    stockUpdate: {
-                      oldTotal,
-                      newTotal: BILLIARD,
-                    },
-                  }
-                : hasNoCurrentStock || hasStockQuantityChanged
-                ? {
-                    stockUpdate: {
-                      oldTotal,
-                      newTotal: stock,
-                    },
-                  }
-                : {};
-
-            // New values for listing attributes
-            const updateValues = {
-              price,
-              ...stockUpdateMaybe,
-            };
-            // Save the initialValues to state
-            // Otherwise, re-rendering would overwrite the values during XHR call.
-            setState({
-              initialValues: {
-                price,
-                stock: stockUpdateMaybe?.stockUpdate?.newTotal || stock,
-                stockTypeInfinity,
-              },
+            const { variantInfo } = values;
+            const formattedVariantInfo = variantInfo.map(variant => {
+              const { price, imageId: image, ...rest } = variant;
+              const priceAsSubunits = price?.amount;
+              const imageId = image?.id?.uuid;
+              return {
+                ...rest,
+                imageId,
+                priceAsSubunits,
+              };
             });
-            onSubmit(updateValues);
+            const minPriceAsSubunits = formattedVariantInfo.reduce((min, variant) => {
+              return Math.min(min, variant.priceAsSubunits);
+            }, Infinity);
+            const minPrice = minPriceAsSubunits
+              ? new Money(minPriceAsSubunits, marketplaceCurrency)
+              : null;
+            const originalImages = listing?.images || [];
+            const images = variantInfo.map(variant => variant.imageId);
+            const stockUpdate = {
+              oldTotal: listing?.currentStock?.attributes?.quantity || null,
+              newTotal: formattedVariantInfo.reduce((sum, variant) => sum + variant.stock, 0),
+            };
+            return onSubmit({
+              price: minPrice,
+              stockUpdate,
+              publicData: {
+                variants: formattedVariantInfo,
+              },
+              images: [...originalImages, ...images],
+            });
           }}
           listingMinimumPriceSubUnits={listingMinimumPriceSubUnits}
           marketplaceCurrency={marketplaceCurrency}
@@ -190,6 +199,11 @@ const EditListingPricingAndStockPanel = props => {
           updated={panelUpdated}
           updateInProgress={updateInProgress}
           fetchErrors={errors}
+          listingFieldsConfig={listingFieldsConfig}
+          listingImageConfig={listingImageConfig}
+          onUploadVariantsImage={onUploadVariantsImage}
+          onRemoveVariantsImage={onRemoveVariantsImage}
+          variantsImages={variantsImages}
         />
       ) : (
         <div className={css.priceCurrencyInvalid}>

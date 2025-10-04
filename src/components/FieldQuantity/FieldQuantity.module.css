@@ -1,0 +1,55 @@
+@import '../../styles/customMediaQueries.css';
+
+.root {
+  position: relative;
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.label {
+  padding: 0;
+}
+
+.quantitySection {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid var(--colorGrey300);
+  border-radius: 4px;
+  padding: 4px;
+  background-color: var(--colorWhite);
+}
+
+.quantityDisplay {
+  width: 100%;
+  text-align: center;
+  padding: 0 8px;
+  background-color: transparent;
+  border: none;
+  outline: none;
+  box-sizing: border-box;
+}
+
+.quantityDisplay:focus {
+  outline: none;
+  border: none;
+}
+
+.quantityDisplay:hover {
+  outline: none;
+  border: none;
+}
+
+.quantityButton {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+}
+
+.quantityButton:disabled {
+  cursor: not-allowed;
+  opacity: 0.2;
+}

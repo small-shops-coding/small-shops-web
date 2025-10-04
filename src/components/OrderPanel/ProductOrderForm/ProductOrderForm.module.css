@@ -20,8 +20,37 @@
 }
 
 .quantityField {
+  width: 100%;
+  max-width: 200px;
   padding: 0 24px;
+  margin-top: 24px;
+  @media (--viewportMedium) {
+    padding: 0;
+  }
+}
 
+.colorField {
+  width: 100%;
+  padding: 0 24px;
+  margin-top: 24px;
+  @media (--viewportMedium) {
+    padding: 0;
+  }
+}
+
+.sizeField {
+  width: 100%;
+  padding: 0 24px;
+  margin-top: 24px;
+  @media (--viewportMedium) {
+    padding: 0;
+  }
+}
+
+.materialField {
+  width: 100%;
+  padding: 0 24px;
+  margin-top: 24px;
   @media (--viewportMedium) {
     padding: 0;
   }
@@ -54,10 +83,10 @@
 
 .breakdownWrapper {
   padding: 0 24px;
+  margin-top: 40px;
 
   @media (--viewportMedium) {
     padding: 0;
-    margin-top: 40px;
   }
 }
 
@@ -82,6 +111,21 @@
 
   padding: 0 24px;
 
+  @media (--viewportMedium) {
+    padding: 0;
+  }
+}
+
+.formFields {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.variantOutOfStock {
+  color: var(--colorFail);
+  display: inline-block;
+  padding: 0 24px;
   @media (--viewportMedium) {
     padding: 0;
   }

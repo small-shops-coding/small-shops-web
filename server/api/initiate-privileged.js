@@ -6,64 +6,70 @@ const {
   serialize,
   fetchCommission,
 } = require('../api-util/sdk');
+const TransactionServices = require('../services/transaction');
 
-module.exports = (req, res) => {
+module.exports = async (req, res) => {
   const { isSpeculative, orderData, bodyParams, queryParams } = req.body;
 
   const sdk = getSdk(req, res);
-  let lineItems = null;
 
-  const listingPromise = () => sdk.listings.show({ id: bodyParams?.params?.listingId });
+  try {
+    const listingPromise = () => sdk.listings.show({ id: bodyParams?.params?.listingId });
 
-  Promise.all([listingPromise(), fetchCommission(sdk)])
-    .then(([showListingResponse, fetchAssetsResponse]) => {
-      const listing = showListingResponse.data.data;
-      const commissionAsset = fetchAssetsResponse.data.data[0];
+    const [showListingResponse, fetchAssetsResponse] = await Promise.all([
+      listingPromise(),
+      fetchCommission(sdk),
+    ]);
 
-      const { providerCommission, customerCommission } =
-        commissionAsset?.type === 'jsonAsset' ? commissionAsset.attributes.data : {};
+    const listing = showListingResponse.data.data;
+    const commissionAsset = fetchAssetsResponse.data.data[0];
 
-      lineItems = transactionLineItems(
-        listing,
+    const { providerCommission, customerCommission } =
+      commissionAsset?.type === 'jsonAsset' ? commissionAsset.attributes.data : {};
+
+    const lineItems = transactionLineItems(
+      listing,
+      { ...orderData, ...bodyParams.params },
+      providerCommission,
+      customerCommission
+    );
+
+    const trustedSdk = await getTrustedSdk(req);
+
+    const { params } = bodyParams;
+
+    // Add lineItems to the body params
+    const body = {
+      ...bodyParams,
+      params: {
+        ...params,
+        lineItems,
+      },
+    };
+
+    const apiResponse = isSpeculative
+      ? await trustedSdk.transactions.initiateSpeculative(body, queryParams)
+      : await trustedSdk.transactions.initiate(body, queryParams);
+    if (!isSpeculative) {
+      TransactionServices.afterInitiateOrderHandler(
         { ...orderData, ...bodyParams.params },
-        providerCommission,
-        customerCommission
+        listing,
+        apiResponse.data.data
       );
-
-      return getTrustedSdk(req);
-    })
-    .then(trustedSdk => {
-      const { params } = bodyParams;
-
-      // Add lineItems to the body params
-      const body = {
-        ...bodyParams,
-        params: {
-          ...params,
-          lineItems,
-        },
-      };
-
-      if (isSpeculative) {
-        return trustedSdk.transactions.initiateSpeculative(body, queryParams);
-      }
-      return trustedSdk.transactions.initiate(body, queryParams);
-    })
-    .then(apiResponse => {
-      const { status, statusText, data } = apiResponse;
-      res
-        .status(status)
-        .set('Content-Type', 'application/transit+json')
-        .send(
-          serialize({
-            status,
-            statusText,
-            data,
-          })
-        )
-        .end();
-    })
-    .catch(e => {
-      handleError(res, e);
-    });
+    }
+    const { status, statusText, data } = apiResponse;
+    res
+      .status(status)
+      .set('Content-Type', 'application/transit+json')
+      .send(
+        serialize({
+          status,
+          statusText,
+          data,
+        })
+      )
+      .end();
+  } catch (e) {
+    handleError(res, e);
+  }
 };

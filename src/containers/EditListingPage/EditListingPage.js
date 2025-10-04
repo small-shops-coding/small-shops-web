@@ -44,6 +44,8 @@ import {
   requestImageUpload,
   removeListingImage,
   savePayoutDetails,
+  requestUploadVariantsImage,
+  removeVariantsImage,
 } from './EditListingPage.duck';
 import EditListingWizard from './EditListingWizard/EditListingWizard';
 import css from './EditListingPage.module.css';
@@ -67,14 +69,23 @@ const pickRenderableImages = (
 ) => {
   // Images are passed to EditListingForm so that it can generate thumbnails out of them
   const currentListingImages = currentListing && currentListing.images ? currentListing.images : [];
+  console.log({ currentListing });
+  //ignore images from variants
+  const currentListingVariantsImages =
+    currentListing && currentListing?.attributes?.publicData?.variants
+      ? currentListing.attributes.publicData.variants.map(variant => variant.imageId)
+      : [];
   // Images not yet connected to the listing
   const unattachedImages = uploadedImageIdsInOrder.map(i => uploadedImages[i]);
   const allImages = currentListingImages.concat(unattachedImages);
-
   const pickImagesAndIds = (imgs, img) => {
     const imgId = img.imageId || img.id;
     // Pick only unique images that are not marked to be removed
-    const shouldInclude = !imgs.imageIds.includes(imgId) && !removedImageIds.includes(imgId);
+    const shouldInclude =
+      !imgs.imageIds.includes(imgId) &&
+      !removedImageIds.includes(imgId) &&
+      !currentListingVariantsImages.some(imageId => imageId === imgId.uuid);
+
     if (shouldInclude) {
       imgs.imageEntities.push(img);
       imgs.imageIds.push(imgId);
@@ -145,6 +156,8 @@ export const EditListingPageComponent = props => {
     onPublishListingDraft,
     onUpdateListing,
     onImageUpload,
+    onUploadVariantsImage,
+    onRemoveVariantsImage,
     onRemoveListingImage,
     onManageDisableScrolling,
     onPayoutDetailsSubmit,
@@ -233,6 +246,10 @@ export const EditListingPageComponent = props => {
       removedImageIds,
       addExceptionError = null,
       deleteExceptionError = null,
+      uploadedVariantsImages,
+      uploadedVariantsImagesOrder,
+      removedVariantsImageIds,
+      uploadVariantsImageError = null,
     } = page;
     const errors = {
       createListingDraftError,
@@ -244,6 +261,7 @@ export const EditListingPageComponent = props => {
       createStripeAccountError,
       addExceptionError,
       deleteExceptionError,
+      uploadVariantsImageError,
     };
     // TODO: is this dead code? (shouldRedirectAfterPosting is checked before)
     const newListingPublished =
@@ -256,6 +274,13 @@ export const EditListingPageComponent = props => {
       uploadedImages,
       uploadedImagesOrder,
       removedImageIds
+    );
+
+    const variantsImages = pickRenderableImages(
+      { images: [] },
+      uploadedVariantsImages,
+      uploadedVariantsImagesOrder,
+      removedVariantsImageIds
     );
 
     const title = isNewListingFlow
@@ -280,6 +305,7 @@ export const EditListingPageComponent = props => {
           newListingPublished={newListingPublished}
           history={history}
           images={images}
+          variantsImages={variantsImages}
           listing={currentListing}
           weeklyExceptionQueries={page.weeklyExceptionQueries}
           monthlyExceptionQueries={page.monthlyExceptionQueries}
@@ -296,6 +322,8 @@ export const EditListingPageComponent = props => {
           getAccountLinkInProgress={getAccountLinkInProgress}
           onImageUpload={onImageUpload}
           onRemoveImage={onRemoveListingImage}
+          onUploadVariantsImage={onUploadVariantsImage}
+          onRemoveVariantsImage={onRemoveVariantsImage}
           currentUser={currentUser}
           onManageDisableScrolling={onManageDisableScrolling}
           stripeOnboardingReturnURL={params.returnURLType}
@@ -385,6 +413,9 @@ const mapDispatchToProps = dispatch => ({
     dispatch(savePayoutDetails(values, isUpdateCall)),
   onGetStripeConnectAccountLink: params => dispatch(getStripeConnectAccountLink(params)),
   onRemoveListingImage: imageId => dispatch(removeListingImage(imageId)),
+  onUploadVariantsImage: (data, listingImageConfig) =>
+    dispatch(requestUploadVariantsImage(data, listingImageConfig)),
+  onRemoveVariantsImage: imageId => dispatch(removeVariantsImage(imageId)),
 });
 
 // Note: it is important that the withRouter HOC is **outside** the

@@ -11,6 +11,8 @@ import { H3, ListingLink } from '../../../../components';
 // Import modules from this directory
 import EditListingPhotosForm from './EditListingPhotosForm';
 import css from './EditListingPhotosPanel.module.css';
+import { types as sdkTypes } from '../../../../util/sdkLoader';
+const { UUID } = sdkTypes;
 
 const getInitialValues = params => {
   const { images = [] } = params;
@@ -83,7 +85,11 @@ const EditListingPhotosPanel = props => {
         onImageUpload={onImageUpload}
         onSubmit={values => {
           const { addImage, ...updateValues } = values;
-          onSubmit(updateValues);
+          const variantImages = listing?.attributes?.publicData?.variants?.map(variant => ({
+            id: new UUID(variant.imageId),
+          }));
+          const submittedImages = [...updateValues.images, ...variantImages];
+          onSubmit({ images: submittedImages });
         }}
         onRemoveImage={onRemoveImage}
         saveActionMsg={submitButtonText}

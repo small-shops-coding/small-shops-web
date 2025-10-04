@@ -230,7 +230,6 @@ export const handleSubmit = parameters => values => {
 
   // Customize checkout page state with current listing and selected orderData
   const { setInitialValues } = findRouteByRouteName('CheckoutPage', routes);
-
   callSetInitialValues(setInitialValues, initialValues, saveToSessionStorage);
 
   // Clear previous Stripe errors from store if there is any

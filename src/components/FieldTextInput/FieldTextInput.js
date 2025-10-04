@@ -105,6 +105,7 @@ const FieldTextInputComponent = props => {
  * @param {boolean} props.isUncontrolled is value tracked by parent component
  * @param {Object} props.inputRef a ref object passed for input element.
  * @param {Function} props.onUnmount Uncontrolled input uses defaultValue prop, but doesn't pass value from form to the field.
+ * @param {Function} props.hideErrorMessage Hide error message
  * @returns {JSX.Element} Final Form Field containing nested "select" input
  */
 class FieldTextInput extends Component {

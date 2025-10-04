@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useImperativeHandle, useState } from 'react';
 import { Form as FinalForm, FormSpy } from 'react-final-form';
 
 import { FormattedMessage, useIntl } from '../../../util/reactIntl';
@@ -14,6 +14,7 @@ import {
   PrimaryButton,
   H3,
   H6,
+  FieldQuantity,
 } from '../../../components';
 
 import EstimatedCustomerBreakdownMaybe from '../EstimatedCustomerBreakdownMaybe';
@@ -21,15 +22,19 @@ import EstimatedCustomerBreakdownMaybe from '../EstimatedCustomerBreakdownMaybe'
 import FetchLineItemsError from '../FetchLineItemsError/FetchLineItemsError.js';
 
 import css from './ProductOrderForm.module.css';
+import debounce from 'lodash/debounce';
+import { MOCK_SIZE_ENUMS } from '../../../util/variants.js';
 
 // Browsers can't render huge number of select options.
 // (stock is shown inside select element)
 // Note: input element could allow ordering bigger quantities
-const MAX_QUANTITY_FOR_DROPDOWN = 100;
 
 const handleFetchLineItems = ({
   quantity,
   deliveryMethod,
+  color,
+  size,
+  material,
   displayDeliveryMethod,
   listingId,
   isOwnListing,
@@ -46,7 +51,7 @@ const handleFetchLineItems = ({
     !fetchLineItemsInProgress
   ) {
     onFetchTransactionLineItems({
-      orderData: { stockReservationQuantity, ...deliveryMethodMaybe },
+      orderData: { stockReservationQuantity, ...deliveryMethodMaybe, color, size, material },
       listingId,
       isOwnListing,
     });
@@ -109,6 +114,13 @@ const DeliveryMethodMaybe = props => {
   );
 };
 
+const getLabel = (value, enumOptions) => {
+  const option = enumOptions.find(option => option.option === value);
+  return option ? option.label : value;
+};
+
+const DEBOUNCE_TIME = 500;
+
 const renderForm = formRenderProps => {
   const [mounted, setMounted] = useState(false);
   const {
@@ -120,7 +132,6 @@ const renderForm = formRenderProps => {
     intl,
     formId,
     currentStock,
-    allowOrdersOfMultipleItems,
     hasMultipleDeliveryMethods,
     displayDeliveryMethod,
     listingId,
@@ -134,15 +145,72 @@ const renderForm = formRenderProps => {
     payoutDetailsWarning,
     marketplaceName,
     values,
+    variants,
+    listingFieldConfigs,
+    onSetSelectedVariant,
+    hideSubmitButton,
+    formRef,
   } = formRenderProps;
+
+  useImperativeHandle(formRef, () => ({
+    submit: () => {
+      formApi.submit();
+    },
+  }));
+
+  const colorEnum = listingFieldConfigs.find(field => field.key === 'colour')?.enumOptions || [];
+  const sizeEnum =
+    listingFieldConfigs.find(field => field.key === 'size')?.enumOptions || MOCK_SIZE_ENUMS;
+  const materialEnum =
+    listingFieldConfigs.find(field => field.key === 'quality_standards')?.enumOptions || [];
+
+  const { colors, sizes, materials } = variants.reduce(
+    (acc, variant) => {
+      if (variant.attributes.color) {
+        const alreadyExists = acc.colors.find(color => color.value === variant.attributes.color);
+        if (!alreadyExists) {
+          const label = getLabel(variant.attributes.color, colorEnum);
+          acc.colors.push({ label, value: variant.attributes.color });
+        }
+      }
+      if (variant.attributes.size) {
+        const alreadyExists = acc.sizes.find(size => size.value === variant.attributes.size);
+        if (!alreadyExists) {
+          const label = getLabel(variant.attributes.size, sizeEnum);
+          acc.sizes.push({ label, value: variant.attributes.size });
+        }
+      }
+      if (variant.attributes.material) {
+        const alreadyExists = acc.materials.find(
+          material => material.value === variant.attributes.material
+        );
+        if (!alreadyExists) {
+          const label = getLabel(variant.attributes.material, materialEnum);
+          acc.materials.push({ label, value: variant.attributes.material });
+        }
+      }
+
+      return acc;
+    },
+    { colors: [], sizes: [], materials: [] }
+  );
+
+  const hasColors = colors.length > 0;
+  const hasSizes = sizes.length > 0;
+  const hasMaterials = materials.length > 0;
+
+  const hasEnoughVariantsData =
+    ((hasColors && values.color) || !hasColors) &&
+    ((hasSizes && values.size) || !hasSizes) &&
+    ((hasMaterials && values.material) || !hasMaterials);
 
   // Note: don't add custom logic before useEffect
   useEffect(() => {
     setMounted(true);
 
     // Side-effect: fetch line-items after mounting if possible
-    const { quantity, deliveryMethod } = values;
-    if (quantity && !formRenderProps.hasMultipleDeliveryMethods) {
+    const { quantity, deliveryMethod, color, size, material } = values;
+    if (quantity && !formRenderProps.hasMultipleDeliveryMethods && hasEnoughVariantsData) {
       handleFetchLineItems({
         quantity,
         deliveryMethod,
@@ -151,17 +219,35 @@ const renderForm = formRenderProps => {
         isOwnListing,
         fetchLineItemsInProgress,
         onFetchTransactionLineItems,
+        color,
+        size,
+        material,
       });
     }
   }, []);
 
+  useEffect(() => {
+    if (hasEnoughVariantsData) {
+      onSetSelectedVariant({
+        color: values.color,
+        size: values.size,
+        material: values.material,
+      });
+    }
+  }, [hasEnoughVariantsData, values.color, values.size, values.material]);
+
+  const debounceFetchLineItems = useCallback(debounce(handleFetchLineItems, DEBOUNCE_TIME), []);
+
   // If form values change, update line-items for the order breakdown
   const handleOnChange = formValues => {
-    const { quantity, deliveryMethod } = formValues.values;
-    if (mounted) {
-      handleFetchLineItems({
+    const { quantity, deliveryMethod, color, size, material } = formValues.values;
+    if (mounted && hasEnoughVariantsData) {
+      debounceFetchLineItems({
         quantity,
         deliveryMethod,
+        color,
+        size,
+        material,
         listingId,
         isOwnListing,
         fetchLineItemsInProgress,
@@ -184,6 +270,21 @@ const renderForm = formRenderProps => {
       // Blur event will show validator message
       formApi.blur('deliveryMethod');
       formApi.focus('deliveryMethod');
+    } else if (!hasEnoughVariantsData) {
+      e.preventDefault();
+      // Blur event will show validator message
+      if (hasColors) {
+        formApi.blur('color');
+        formApi.focus('color');
+      }
+      if (hasSizes) {
+        formApi.blur('size');
+        formApi.focus('size');
+      }
+      if (hasMaterials) {
+        formApi.blur('material');
+        formApi.focus('material');
+      }
     } else {
       handleSubmit(e);
     }
@@ -209,46 +310,94 @@ const renderForm = formRenderProps => {
 
   // Listing is out of stock if currentStock is zero.
   // Undefined/null stock means that stock has never been set.
-  const hasNoStockLeft = typeof currentStock != null && currentStock === 0;
   const hasStock = currentStock && currentStock > 0;
-  const hasOneItemLeft = currentStock === 1;
-  const selectableStock =
-    currentStock > MAX_QUANTITY_FOR_DROPDOWN ? MAX_QUANTITY_FOR_DROPDOWN : currentStock;
-  const quantities = hasStock ? [...Array(selectableStock).keys()].map(i => i + 1) : [];
 
   const submitInProgress = fetchLineItemsInProgress;
   const submitDisabled = !hasStock;
 
+  const currentVariantStock = variants.find(
+    variant =>
+      ((hasColors && variant.attributes.color === values.color) || !hasColors) &&
+      ((hasSizes && variant.attributes.size === values.size) || !hasSizes) &&
+      ((hasMaterials && variant.attributes.material === values.material) || !hasMaterials) &&
+      variant.stock > 0
+  )?.stock;
+
+  const showErrorMessage = !currentVariantStock && hasEnoughVariantsData;
+
   return (
     <Form onSubmit={handleFormSubmit}>
       <FormSpy subscription={{ values: true }} onChange={handleOnChange} />
-      {hasNoStockLeft ? null : hasOneItemLeft || !allowOrdersOfMultipleItems ? (
-        <FieldTextInput
-          id={`${formId}.quantity`}
-          className={css.quantityField}
-          name="quantity"
-          type="hidden"
-          validate={numberAtLeast(quantityRequiredMsg, 1)}
-        />
-      ) : (
-        <FieldSelect
-          id={`${formId}.quantity`}
-          className={css.quantityField}
-          name="quantity"
-          disabled={!hasStock}
-          label={intl.formatMessage({ id: 'ProductOrderForm.quantityLabel' })}
-          validate={numberAtLeast(quantityRequiredMsg, 1)}
-        >
-          <option disabled value="">
-            {intl.formatMessage({ id: 'ProductOrderForm.selectQuantityOption' })}
-          </option>
-          {quantities.map(quantity => (
-            <option key={quantity} value={quantity}>
-              {intl.formatMessage({ id: 'ProductOrderForm.quantityOption' }, { quantity })}
+
+      <div className={css.formFields}>
+        {hasColors && (
+          <FieldSelect
+            id={`${formId}.color`}
+            className={css.colorField}
+            name="color"
+            label={intl.formatMessage({ id: 'ProductOrderForm.colorLabel' })}
+          >
+            <option disabled value="">
+              {intl.formatMessage({ id: 'ProductOrderForm.colorPlaceholder' })}
             </option>
-          ))}
-        </FieldSelect>
-      )}
+            {colors.map(color => (
+              <option value={color.value} key={color.value}>
+                {color.label}
+              </option>
+            ))}
+          </FieldSelect>
+        )}
+
+        {hasSizes && (
+          <FieldSelect
+            id={`${formId}.size`}
+            className={css.sizeField}
+            name="size"
+            label={intl.formatMessage({ id: 'ProductOrderForm.sizeLabel' })}
+          >
+            <option disabled value="">
+              {intl.formatMessage({ id: 'ProductOrderForm.sizePlaceholder' })}
+            </option>
+            {sizes.map(size => (
+              <option value={size.value} key={size.value}>
+                {size.label}
+              </option>
+            ))}
+          </FieldSelect>
+        )}
+
+        {hasMaterials && (
+          <FieldSelect
+            id={`${formId}.material`}
+            className={css.materialField}
+            name="material"
+            label={intl.formatMessage({ id: 'ProductOrderForm.materialLabel' })}
+          >
+            <option disabled value="">
+              {intl.formatMessage({ id: 'ProductOrderForm.materialPlaceholder' })}
+            </option>
+            {materials.map(material => (
+              <option value={material.value} key={material.value}>
+                {material.label}
+              </option>
+            ))}
+          </FieldSelect>
+        )}
+
+        {currentVariantStock > 0 ? (
+          <FieldQuantity
+            id={`${formId}.quantity`}
+            className={css.quantityField}
+            name="quantity"
+            validate={numberAtLeast(quantityRequiredMsg, 1)}
+            maxQuantity={currentVariantStock}
+          />
+        ) : showErrorMessage ? (
+          <p className={css.variantOutOfStock}>
+            <FormattedMessage id="ProductOrderForm.variantOutOfStock" />
+          </p>
+        ) : null}
+      </div>
 
       <DeliveryMethodMaybe
         displayDeliveryMethod={displayDeliveryMethod}
@@ -277,15 +426,17 @@ const renderForm = formRenderProps => {
 
       <FetchLineItemsError error={fetchLineItemsError} />
 
-      <div className={css.submitButton}>
-        <PrimaryButton type="submit" inProgress={submitInProgress} disabled={submitDisabled}>
-          {hasStock ? (
-            <FormattedMessage id="ProductOrderForm.ctaButton" />
-          ) : (
-            <FormattedMessage id="ProductOrderForm.ctaButtonNoStock" />
-          )}
-        </PrimaryButton>
-      </div>
+      {!hideSubmitButton && (
+        <div className={css.submitButton}>
+          <PrimaryButton type="submit" inProgress={submitInProgress} disabled={submitDisabled}>
+            {hasStock ? (
+              <FormattedMessage id="ProductOrderForm.ctaButton" />
+            ) : (
+              <FormattedMessage id="ProductOrderForm.ctaButtonNoStock" />
+            )}
+          </PrimaryButton>
+        </div>
+      )}
       <p className={css.finePrint}>
         {payoutDetailsWarning ? (
           payoutDetailsWarning
@@ -323,6 +474,8 @@ const renderForm = formRenderProps => {
  * @param {boolean} props.fetchLineItemsInProgress - Whether the line items are being fetched
  * @param {propTypes.error} props.fetchLineItemsError - The error for fetching the line items
  * @param {Function} props.onContactUser - The function to contact the user
+ * @param {Object} props.listingFieldConfigs - The listing field configs
+ * @param {boolean} props.hideSubmitButton - Whether the submit button is hidden
  * @returns {JSX.Element}
  */
 const ProductOrderForm = props => {

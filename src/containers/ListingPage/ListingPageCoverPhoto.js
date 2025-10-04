@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { compose } from 'redux';
 import { connect } from 'react-redux';
 import { useHistory, useLocation } from 'react-router-dom';
@@ -9,7 +9,14 @@ import { useConfiguration } from '../../context/configurationContext';
 import { useRouteConfiguration } from '../../context/routeConfigurationContext';
 // Utils
 import { FormattedMessage, useIntl } from '../../util/reactIntl';
-import { LISTING_STATE_PENDING_APPROVAL, LISTING_STATE_CLOSED, propTypes } from '../../util/types';
+import {
+  LISTING_STATE_PENDING_APPROVAL,
+  LISTING_STATE_CLOSED,
+  propTypes,
+  STOCK_MULTIPLE_ITEMS,
+  STOCK_INFINITE_MULTIPLE_ITEMS,
+  LINE_ITEM_ITEM,
+} from '../../util/types';
 import { types as sdkTypes } from '../../util/sdkLoader';
 import {
   LISTING_PAGE_DRAFT_VARIANT,
@@ -26,7 +33,11 @@ import {
   isForbiddenError,
 } from '../../util/errors.js';
 import { hasPermissionToViewData, isUserAuthorized } from '../../util/userHelpers.js';
-import { requireListingImage } from '../../util/configHelpers';
+import {
+  displayDeliveryPickup,
+  displayDeliveryShipping,
+  requireListingImage,
+} from '../../util/configHelpers';
 import {
   ensureListing,
   ensureOwnListing,
@@ -66,6 +77,7 @@ import {
   setInitialValues,
   fetchTimeSlots,
   fetchTransactionLineItems,
+  setSelectedVariant,
 } from './ListingPage.duck';
 
 import {
@@ -87,6 +99,9 @@ import CustomListingFields from './CustomListingFields';
 import ActionBarMaybe from './ActionBarMaybe';
 
 import css from './ListingPage.module.css';
+import { MOCK_VARIANTS } from '../../util/variants.js';
+import useMediaQuery from '../../hooks/useMediaQuery.js';
+import ProductOrderForm from '../../components/OrderPanel/ProductOrderForm/ProductOrderForm.js';
 
 const MIN_LENGTH_FOR_LONG_WORDS_IN_TITLE = 16;
 
@@ -99,6 +114,8 @@ export const ListingPageComponent = props => {
   const [imageCarouselOpen, setImageCarouselOpen] = useState(false);
 
   const [mounted, setMounted] = useState(false);
+  const mobileFormRef = useRef(null);
+  const { isMobile } = useMediaQuery();
 
   useEffect(() => {
     setMounted(true);
@@ -126,6 +143,7 @@ export const ListingPageComponent = props => {
     config,
     routeConfiguration,
     showOwnListingsOnly,
+    selectedVariant,
     ...restOfProps
   } = props;
 
@@ -268,7 +286,11 @@ export const ListingPageComponent = props => {
     if (isOwnListing || isCurrentlyClosed) {
       window.scrollTo(0, 0);
     } else {
-      onSubmit(values);
+      if (isMobile) {
+        mobileFormRef.current.submit();
+      } else {
+        onSubmit(values);
+      }
     }
   };
 
@@ -302,6 +324,30 @@ export const ListingPageComponent = props => {
     e.stopPropagation();
     setImageCarouselOpen(true);
   };
+
+  const variants = currentListing.attributes.publicData.variants || MOCK_VARIANTS;
+  const selectedVariantFromListing = variants.find(
+    variant =>
+      ((selectedVariant?.color && variant?.color === selectedVariant?.color) ||
+        !selectedVariant?.color) &&
+      ((selectedVariant?.size && variant?.size === selectedVariant?.size) ||
+        !selectedVariant?.size) &&
+      ((selectedVariant?.material && variant?.material === selectedVariant?.material) ||
+        !selectedVariant?.material)
+  );
+
+  const selectedVariantImageId = selectedVariantFromListing?.imageID;
+
+  const { pickupEnabled, shippingEnabled } = currentListing?.attributes?.publicData || {};
+
+  const listingTypeConfig = validListingTypes.find(conf => conf.listingType === listingType);
+  const displayShipping = displayDeliveryShipping(listingTypeConfig);
+  const displayPickup = displayDeliveryPickup(listingTypeConfig);
+  const allowOrdersOfMultipleItems = [STOCK_MULTIPLE_ITEMS, STOCK_INFINITE_MULTIPLE_ITEMS].includes(
+    listingTypeConfig?.stockType
+  );
+
+  const lineItemUnitType = `line-item/${unitType}`;
 
   const actionBar =
     mounted && currentListing.id && isOwnListing ? (
@@ -367,6 +413,7 @@ export const ListingPageComponent = props => {
             handleViewPhotosClick={handleViewPhotosClick}
             onManageDisableScrolling={onManageDisableScrolling}
             actionBar={actionBar}
+            selectedVariantImageId={selectedVariantImageId}
           />
         ) : (
           isOwnListing && <div className={css.actionBarContainerForNoListingImage}>{actionBar}</div>
@@ -390,6 +437,33 @@ export const ListingPageComponent = props => {
                 </H3>
               )}
             </div>
+            {lineItemUnitType === LINE_ITEM_ITEM && (
+              <div className={css.productOrderFormMobileWrapper}>
+                <ProductOrderForm
+                  formRef={mobileFormRef}
+                  className={css.productOrderFormMobile}
+                  formId="OrderPanelProductOrderForm"
+                  currentStock={currentStock}
+                  allowOrdersOfMultipleItems={allowOrdersOfMultipleItems}
+                  pickupEnabled={pickupEnabled && displayPickup}
+                  shippingEnabled={shippingEnabled && displayShipping}
+                  displayDeliveryMethod={displayPickup || displayShipping}
+                  onContactUser={onContactUser}
+                  variants={variants}
+                  listingFieldConfigs={listingConfig.listingFields}
+                  lineItemUnitType={lineItemUnitType}
+                  onSubmit={onSubmit}
+                  price={price}
+                  marketplaceCurrency={config.currency}
+                  listingId={currentListing.id}
+                  isOwnListing={isOwnListing}
+                  marketplaceName={marketplaceName}
+                  payoutDetailsWarning={payoutDetailsWarning}
+                  hideSubmitButton={true}
+                  {...restOfProps}
+                />
+              </div>
+            )}
             <SectionTextMaybe text={description} showAsIngress />
 
             <CustomListingFields
@@ -453,6 +527,7 @@ export const ListingPageComponent = props => {
               dayCountAvailableForBooking={config.stripe.dayCountAvailableForBooking}
               marketplaceName={config.marketplaceName}
               showListingImage={showListingImage}
+              listingFieldConfigs={config.listing.listingFields}
             />
           </div>
         </div>
@@ -568,6 +643,7 @@ const mapStateToProps = state => {
     fetchLineItemsInProgress,
     fetchLineItemsError,
     inquiryModalOpenForListingId,
+    selectedVariant,
   } = state.ListingPage;
   const { currentUser } = state.user;
 
@@ -600,6 +676,7 @@ const mapStateToProps = state => {
     fetchLineItemsError, // for OrderPanel
     sendInquiryInProgress,
     sendInquiryError,
+    selectedVariant,
   };
 };
 
@@ -613,6 +690,7 @@ const mapDispatchToProps = dispatch => ({
   onInitializeCardPaymentData: () => dispatch(initializeCardPaymentData()),
   onFetchTimeSlots: (listingId, start, end, timeZone, options) =>
     dispatch(fetchTimeSlots(listingId, start, end, timeZone, options)), // for OrderPanel
+  onSetSelectedVariant: variant => dispatch(setSelectedVariant(variant)),
 });
 
 // Note: it is important that the withRouter HOC is **outside** the

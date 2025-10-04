@@ -83,8 +83,8 @@ export const FieldAddImage = props => {
 };
 
 // Component that shows listing images from "images" field array
-const FieldListingImage = props => {
-  const { name, intl, onRemoveImage, aspectWidth, aspectHeight, variantPrefix } = props;
+export const FieldListingImage = props => {
+  const { name, intl, onRemoveImage, aspectWidth, aspectHeight, variantPrefix, className } = props;
   return (
     <Field name={name}>
       {fieldProps => {
@@ -94,7 +94,7 @@ const FieldListingImage = props => {
           <ListingImage
             image={image}
             key={image?.id?.uuid || image?.id}
-            className={css.thumbnail}
+            className={classNames(css.thumbnail, className)}
             savedImageAltText={intl.formatMessage({
               id: 'EditListingPhotosForm.savedImageAltText',
             })}

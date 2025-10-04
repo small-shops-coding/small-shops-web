@@ -170,6 +170,12 @@ export const SAVE_PAYOUT_DETAILS_REQUEST = 'app/EditListingPage/SAVE_PAYOUT_DETA
 export const SAVE_PAYOUT_DETAILS_SUCCESS = 'app/EditListingPage/SAVE_PAYOUT_DETAILS_SUCCESS';
 export const SAVE_PAYOUT_DETAILS_ERROR = 'app/EditListingPage/SAVE_PAYOUT_DETAILS_ERROR';
 
+export const UPLOAD_VARIANTS_IMAGE_REQUEST = 'app/EditListingPage/UPLOAD_VARIANTS_IMAGE_REQUEST';
+export const UPLOAD_VARIANTS_IMAGE_SUCCESS = 'app/EditListingPage/UPLOAD_VARIANTS_IMAGE_SUCCESS';
+export const UPLOAD_VARIANTS_IMAGE_ERROR = 'app/EditListingPage/UPLOAD_VARIANTS_IMAGE_ERROR';
+
+export const REMOVE_VARIANTS_IMAGE = 'app/EditListingPage/REMOVE_VARIANTS_IMAGE';
+
 // ================ Reducer ================ //
 
 const initialState = {
@@ -210,6 +216,10 @@ const initialState = {
   updateInProgress: false,
   payoutDetailsSaveInProgress: false,
   payoutDetailsSaved: false,
+
+  uploadedVariantsImages: {},
+  uploadedVariantsImagesOrder: [],
+  removedVariantsImageIds: [],
 };
 
 export default function reducer(state = initialState, action = {}) {
@@ -456,6 +466,42 @@ export default function reducer(state = initialState, action = {}) {
     case SAVE_PAYOUT_DETAILS_SUCCESS:
       return { ...state, payoutDetailsSaveInProgress: false, payoutDetailsSaved: true };
 
+    case UPLOAD_VARIANTS_IMAGE_REQUEST: {
+      const uploadedVariantsImages = {
+        ...state.uploadedVariantsImages,
+        [payload.params.id]: { ...payload.params },
+      };
+    }
+    case UPLOAD_VARIANTS_IMAGE_SUCCESS: {
+      const { id, ...rest } = payload;
+      const uploadedVariantsImages = { ...state.uploadedVariantsImages, [id]: { id, ...rest } };
+      return { ...state, uploadedVariantsImages };
+    }
+    case UPLOAD_VARIANTS_IMAGE_ERROR: {
+      const { id, error } = payload;
+      const uploadedVariantsImagesOrder = state.uploadedVariantsImagesOrder.filter(i => i !== id);
+      const uploadedVariantsImages = omit(state.uploadedVariantsImages, id);
+      return {
+        ...state,
+        uploadedVariantsImagesOrder,
+        uploadedVariantsImages,
+        uploadVariantsImageError: error,
+      };
+    }
+    case REMOVE_VARIANTS_IMAGE: {
+      const id = payload.imageId;
+      const removedVariantsImageIds = state.uploadedVariantsImages[id]
+        ? state.removedVariantsImageIds
+        : state.removedVariantsImageIds.concat(id);
+      const uploadedVariantsImages = omit(state.uploadedVariantsImages, id);
+      const uploadedVariantsImagesOrder = state.uploadedVariantsImagesOrder.filter(i => i !== id);
+      return {
+        ...state,
+        uploadedVariantsImages,
+        uploadedVariantsImagesOrder,
+        removedVariantsImageIds,
+      };
+    }
     default:
       return state;
   }
@@ -540,6 +586,15 @@ export const savePayoutDetailsRequest = requestAction(SAVE_PAYOUT_DETAILS_REQUES
 export const savePayoutDetailsSuccess = successAction(SAVE_PAYOUT_DETAILS_SUCCESS);
 export const savePayoutDetailsError = errorAction(SAVE_PAYOUT_DETAILS_ERROR);
 
+export const uploadVariantsImageRequest = requestAction(UPLOAD_VARIANTS_IMAGE_REQUEST);
+export const uploadVariantsImageSuccess = successAction(UPLOAD_VARIANTS_IMAGE_SUCCESS);
+export const uploadVariantsImageError = errorAction(UPLOAD_VARIANTS_IMAGE_ERROR);
+
+export const removeVariantsImage = imageId => ({
+  type: REMOVE_VARIANTS_IMAGE,
+  payload: { imageId },
+});
+
 // ================ Thunk ================ //
 
 export function requestShowListing(actionPayload, config) {
@@ -590,7 +645,7 @@ const updateStockOfListingMaybe = (listingId, stockTotals, dispatch) => {
   const { oldTotal, newTotal } = stockTotals || {};
   // Note: newTotal and oldTotal must be given, but oldTotal can be null
   const hasStockTotals = newTotal >= 0 && typeof oldTotal !== 'undefined';
-
+  console.log({ newTotal, oldTotal });
   if (listingId && hasStockTotals) {
     return dispatch(compareAndSetStock(listingId, oldTotal, newTotal));
   }
@@ -608,7 +663,8 @@ export function requestCreateListingDraft(data, config) {
 
     // If images should be saved, create array out of the image UUIDs for the API call
     // Note: in this template, image upload is not happening at the same time as listing creation.
-    const imageProperty = typeof images !== 'undefined' ? { images: imageIds(images) } : {};
+    const imageProperty =
+      typeof images !== 'undefined' ? { images: Array.from(new Set(imageIds(images))) } : {};
     const ownListingValues = { ...imageProperty, ...rest };
 
     const imageVariantInfo = getImageVariantInfo(config.layout.listingImage);
@@ -650,7 +706,8 @@ export function requestUpdateListing(tab, data, config) {
     const { id, stockUpdate, images, ...rest } = data;
 
     // If images should be saved, create array out of the image UUIDs for the API call
-    const imageProperty = typeof images !== 'undefined' ? { images: imageIds(images) } : {};
+    const imageProperty =
+      typeof images !== 'undefined' ? { images: Array.from(new Set(imageIds(images))) } : {};
     const ownListingUpdateValues = { id, ...imageProperty, ...rest };
     const imageVariantInfo = getImageVariantInfo(config.layout.listingImage);
     const queryParams = {
@@ -965,4 +1022,30 @@ export const loadData = (params, search, config) => (dispatch, getState, sdk) =>
     .catch(e => {
       throw e;
     });
+};
+
+export const requestUploadVariantsImage = (actionPayload, listingImageConfig) => {
+  return (dispatch, getState, sdk) => {
+    const id = actionPayload.id;
+    const imageVariantInfo = getImageVariantInfo(listingImageConfig);
+    const queryParams = {
+      expand: true,
+      'fields.image': imageVariantInfo.fieldsImage,
+      ...imageVariantInfo.imageVariants,
+    };
+
+    dispatch(uploadVariantsImageRequest(actionPayload));
+    return sdk.images
+      .upload({ image: actionPayload.file }, queryParams)
+      .then(resp => {
+        const img = resp.data.data;
+        dispatch(
+          uploadVariantsImageSuccess({
+            data: { ...img, id, imageId: img.id, file: actionPayload.file },
+          })
+        );
+        return img;
+      })
+      .catch(e => dispatch(uploadVariantsImageError({ id, error: storableError(e) })));
+  };
 };

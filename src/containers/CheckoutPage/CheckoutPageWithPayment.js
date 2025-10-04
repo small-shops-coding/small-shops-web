@@ -103,6 +103,10 @@ const getOrderParams = (pageData, shippingDetails, optionalPaymentParams, config
   const deliveryMethod = pageData.orderData?.deliveryMethod;
   const deliveryMethodMaybe = deliveryMethod ? { deliveryMethod } : {};
   const { listingType, unitType, priceVariants } = pageData?.listing?.attributes?.publicData || {};
+  const { color, size, material } = pageData.orderData;
+  const colorMaybe = color ? { color } : {};
+  const sizeMaybe = size ? { size } : {};
+  const materialMaybe = material ? { material } : {};
 
   // price variant data for fixed duration bookings
   const priceVariantName = pageData.orderData?.priceVariantName;
@@ -116,6 +120,10 @@ const getOrderParams = (pageData, shippingDetails, optionalPaymentParams, config
       ...deliveryMethodMaybe,
       ...shippingDetails,
       ...priceVariantMaybe,
+      ...colorMaybe,
+      ...sizeMaybe,
+      ...materialMaybe,
+      ...quantityMaybe,
     },
   };
 
@@ -137,6 +145,9 @@ const getOrderParams = (pageData, shippingDetails, optionalPaymentParams, config
     ...priceVariantNameMaybe,
     ...protectedDataMaybe,
     ...optionalPaymentParams,
+    ...colorMaybe,
+    ...sizeMaybe,
+    ...materialMaybe,
   };
   return orderParams;
 };
