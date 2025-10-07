@@ -96,7 +96,9 @@ export const ProfileSettingsPageComponent = props => {
       displayName,
       bio: rawBio,
       shopLocation,
-      shopExtraInfo = '',
+      shopOpeningHours = '',
+      shopPhoneNumber = '',
+      shopWebsite = '',
       shopTitle = '',
       shopMedia = [],
       ...rest
@@ -125,7 +127,9 @@ export const ProfileSettingsPageComponent = props => {
         ...pickUserFieldsData(rest, 'public', userType, userFields),
         ...shopLocationMaybe,
         shopTitle,
-        shopExtraInfo,
+        shopOpeningHours,
+        shopPhoneNumber,
+        shopWebsite,
         shopMedia,
       },
       protectedData: {
@@ -160,7 +164,15 @@ export const ProfileSettingsPageComponent = props => {
   // I.e. the status is active, not pending-approval or banned
   const isUnauthorizedUser = currentUser && !isUserAuthorized(currentUser);
 
-  const { userType, shopTitle, shopExtraInfo, shopMedia, shopLocation } = publicData || {};
+  const {
+    userType,
+    shopTitle,
+    shopOpeningHours,
+    shopPhoneNumber,
+    shopWebsite,
+    shopMedia,
+    shopLocation,
+  } = publicData || {};
   const profileImageId = user.profileImage ? user.profileImage.id : null;
   const profileImage = image || { imageId: profileImageId };
   const userTypeConfig = userTypes.find(config => config.userType === userType);
@@ -178,7 +190,9 @@ export const ProfileSettingsPageComponent = props => {
       ...initialValuesForUserFields(protectedData, 'protected', userType, userFields),
       ...initialValuesForUserFields(privateData, 'private', userType, userFields),
       shopTitle,
-      shopExtraInfo,
+      shopOpeningHours,
+      shopPhoneNumber,
+      shopWebsite,
       shopMedia,
       ...(shopLocation
         ? {
@@ -204,7 +218,9 @@ export const ProfileSettingsPageComponent = props => {
       JSON.stringify(userType),
       JSON.stringify(userFields),
       shopTitle,
-      shopExtraInfo,
+      shopOpeningHours,
+      shopPhoneNumber,
+      shopWebsite,
       JSON.stringify(shopMedia),
       JSON.stringify(shopLocation),
     ]

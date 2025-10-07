@@ -48,6 +48,7 @@ import {
   NamedRedirect,
   Modal,
   Map,
+  InlineTextButton,
 } from '../../components';
 
 import TopbarContainer from '../../containers/TopbarContainer/TopbarContainer';
@@ -63,6 +64,65 @@ import MediaSlider from '../../components/MediaSlider/MediaSlider';
 
 const MAX_MOBILE_SCREEN_WIDTH = 768;
 const MIN_LENGTH_FOR_LONG_WORDS = 20;
+
+const ExpandableBio = ({ bio, className, bioClassName }) => {
+  const [isExpanded, setIsExpanded] = useState(false);
+  const [isOverflowing, setIsOverflowing] = useState(false);
+  const contentRef = React.useRef(null);
+
+  useEffect(() => {
+    const el = contentRef.current;
+    if (!el) return;
+    // Measure overflow on next paint to ensure styles are applied
+    const r = () => {
+      try {
+        const overflowing = el.scrollHeight > el.clientHeight + 1;
+        setIsOverflowing(overflowing);
+      } catch (_) {
+        setIsOverflowing(false);
+      }
+    };
+    r();
+    // Re-measure on window resize
+    window.addEventListener('resize', r);
+    return () => window.removeEventListener('resize', r);
+  }, [bio, isExpanded]);
+
+  const clampStyle = isExpanded
+    ? {}
+    : {
+        display: '-webkit-box',
+        WebkitLineClamp: 3,
+        WebkitBoxOrient: 'vertical',
+        overflow: 'hidden',
+      };
+
+  const bioWithLinks = richText(bio, {
+    linkify: true,
+    longWordMinLength: MIN_LENGTH_FOR_LONG_WORDS,
+    longWordClass: css.longWord,
+  });
+
+  return (
+    <div className={className}>
+      <div ref={contentRef} className={bioClassName} style={clampStyle}>
+        {bioWithLinks}
+      </div>
+      {!isExpanded && isOverflowing ? (
+        <InlineTextButton
+          as="button"
+          className={css.showMoreButton}
+          onClick={e => {
+            e.preventDefault();
+            setIsExpanded(true);
+          }}
+        >
+          <FormattedMessage id="UserCard.showFullBioLink" />
+        </InlineTextButton>
+      ) : null}
+    </div>
+  );
+};
 
 export const AsideContent = props => {
   const { user, displayName, showLinkToProfileSettingsPage } = props;
@@ -266,7 +326,14 @@ export const MainContent = props => {
     );
   }
 
-  const { shopTitle, shopExtraInfo, shopLocation, shopMedia } = publicData;
+  const {
+    shopTitle,
+    shopOpeningHours,
+    shopPhoneNumber,
+    shopWebsite,
+    shopLocation,
+    shopMedia,
+  } = publicData;
   return (
     <div>
       <div className={css.desktopHeadingContainer}>
@@ -275,7 +342,9 @@ export const MainContent = props => {
         </H2>
         {shopTitle ? <span className={css.shopTitle}>{shopTitle}</span> : null}
       </div>
-      {hasBio ? <p className={css.bio}>{bioWithLinks}</p> : null}
+      {hasBio ? (
+        <ExpandableBio className={css.bioWrapper} bio={bio} bioClassName={css.bio} />
+      ) : null}
 
       {displayName ? (
         <CustomUserFields
@@ -288,8 +357,22 @@ export const MainContent = props => {
 
       {shopMedia ? <MediaSlider media={shopMedia} /> : null}
 
-      {shopExtraInfo ? (
-        <p className={css.shopExtraInfo} dangerouslySetInnerHTML={{ __html: shopExtraInfo }} />
+      {shopOpeningHours ? (
+        <p className={css.shopExtraInfo}>
+          <FormattedMessage id="ProfilePage.shopOpeningHours" />: {shopOpeningHours}
+        </p>
+      ) : null}
+
+      {shopPhoneNumber ? (
+        <p className={css.shopPhoneNumber}>
+          <FormattedMessage id="ProfilePage.shopPhoneNumber" />: {shopPhoneNumber}
+        </p>
+      ) : null}
+
+      {shopWebsite ? (
+        <p className={css.shopWebsite}>
+          <FormattedMessage id="ProfilePage.shopWebsite" />: {shopWebsite}
+        </p>
       ) : null}
 
       {shopLocation ? (

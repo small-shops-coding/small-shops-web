@@ -16,9 +16,9 @@ import css from './UserCard.module.css';
 const BIO_COLLAPSED_LENGTH = 170;
 const MIN_LENGTH_FOR_LONG_WORDS = 20;
 
-const truncated = s => {
+const truncated = (s, collapsedLength) => {
   return truncate(s, {
-    length: BIO_COLLAPSED_LENGTH,
+    length: collapsedLength,
 
     // Allow truncated text end only in specific characters. This will
     // make the truncated text shorter than the length if the original
@@ -31,15 +31,15 @@ const truncated = s => {
   });
 };
 
-const ExpandableBio = props => {
+export const ExpandableBio = props => {
   const [expand, setExpand] = useState(false);
-  const { className, bio } = props;
+  const { className, bio, collapsedLength = BIO_COLLAPSED_LENGTH } = props;
   const bioWithLinks = richText(bio, {
     linkify: true,
     longWordMinLength: MIN_LENGTH_FOR_LONG_WORDS,
     longWordClass: css.longWord,
   });
-  const truncatedBio = richText(truncated(bio), {
+  const truncatedBio = richText(truncated(bio, collapsedLength), {
     linkify: true,
     longWordMinLength: MIN_LENGTH_FOR_LONG_WORDS,
     longWordClass: css.longWord,
@@ -54,10 +54,11 @@ const ExpandableBio = props => {
       <FormattedMessage id="UserCard.showFullBioLink" />
     </InlineTextButton>
   );
+  const text = expand ? bioWithLinks : truncatedBio;
   return (
     <p className={className}>
-      {expand ? bioWithLinks : truncatedBio}
-      {bio.length >= BIO_COLLAPSED_LENGTH && !expand ? showMore : null}
+      {text}
+      {bio.length >= collapsedLength && !expand ? showMore : null}
     </p>
   );
 };

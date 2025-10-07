@@ -1,59 +1,140 @@
-export const MOCK_VARIANTS = [
+export const SIZE_ENUMS = [
   {
-    key: 'cotton_m_black',
-    sku: 'TSHIRT-BLK-M-COT',
-    color: 'black',
-    size: 'm',
-    material: 'Organic_Materials',
-    priceAsSubunits: 19.99,
-    quantity: 10,
-    imageID: '68dbe265-bece-4743-934d-650bc884f3b5',
+    option: 'oneSize',
+    label: 'SizeEnum.oneSize',
   },
-  {
-    key: 'cotton_l_white',
-    sku: 'TSHIRT-BLK-M-COT',
-    color: 'white',
-    size: 'l',
-    material: 'Local_Production',
-    priceAsSubunits: 21.99,
-    quantity: 5,
-    imageID: '68dd441e-d1b8-4b1f-ac9f-376c905f7db6',
-  },
-  {
-    key: 'cotton_l_white',
-    sku: 'TSHIRT-BLK-M-COT',
-    color: 'green',
-    size: 'l',
-    material: 'Fair_and_Social',
-    priceAsSubunits: 21.99,
-    quantity: 5,
-    imageID: '68dd4425-912e-4182-9136-7260d52bec6d',
-  },
-];
-
-export const MOCK_SIZE_ENUMS = [
   {
     option: 'xs',
-    label: 'Extra Small',
+    label: 'SizeEnum.xs',
   },
   {
     option: 's',
-    label: 'Small',
+    label: 'SizeEnum.s',
   },
   {
     option: 'm',
-    label: 'Medium',
+    label: 'SizeEnum.m',
   },
   {
     option: 'l',
-    label: 'Large',
+    label: 'SizeEnum.l',
   },
   {
     option: 'xl',
-    label: 'Extra Large',
+    label: 'SizeEnum.xl',
   },
   {
     option: 'xxl',
-    label: 'Extra Extra Large',
+    label: 'SizeEnum.xxl',
+  },
+];
+
+export const COLOR_ENUMS = [
+  {
+    option: 'black',
+    label: 'ColorEnum.black',
+  },
+  {
+    option: 'white',
+    label: 'ColorEnum.white',
+  },
+  {
+    option: 'gray',
+    label: 'ColorEnum.gray',
+  },
+  {
+    option: 'red',
+    label: 'ColorEnum.red',
+  },
+  {
+    option: 'orange',
+    label: 'ColorEnum.orange',
+  },
+  {
+    option: 'yellow',
+    label: 'ColorEnum.yellow',
+  },
+  {
+    option: 'green',
+    label: 'ColorEnum.green',
+  },
+  {
+    option: 'teal',
+    label: 'ColorEnum.teal',
+  },
+  {
+    option: 'blue',
+    label: 'ColorEnum.blue',
+  },
+  {
+    option: 'navy',
+    label: 'ColorEnum.navy',
+  },
+  {
+    option: 'purple',
+    label: 'ColorEnum.purple',
+  },
+  {
+    option: 'pink',
+    label: 'ColorEnum.pink',
+  },
+  {
+    option: 'brown',
+    label: 'ColorEnum.brown',
+  },
+  {
+    option: 'beige',
+    label: 'ColorEnum.beige',
+  },
+  {
+    option: 'tan',
+    label: 'ColorEnum.tan',
+  },
+  {
+    option: 'gold',
+    label: 'ColorEnum.gold',
+  },
+  {
+    option: 'silver',
+    label: 'ColorEnum.silver',
+  },
+  {
+    option: 'bronze',
+    label: 'ColorEnum.bronze',
+  },
+];
+
+export const MATERIAL_ENUMS = [
+  {
+    label: 'MaterialEnum.Organic_Materials',
+    option: 'Organic_Materials',
+  },
+  {
+    label: 'MaterialEnum.Local_Production',
+    option: 'Local_Production',
+  },
+  {
+    option: 'Fair_and_Social',
+    label: 'MaterialEnum.Fair_and_Social',
+  },
+  {
+    label: 'MaterialEnum.Reduced_CO2_Emissions',
+    option: 'Reduced_CO2_Emissions',
+  },
+  {
+    label: 'MaterialEnum.Handmade',
+    option: 'Handmade',
+  },
+  {
+    label: 'MaterialEnum.Up_or_Recycled',
+    option: 'Up_or_Recycled',
+  },
+  {
+    option: 'Transparent_Supply_Chain',
+    label: 'MaterialEnum.Transparent_Supply_Chain',
+  },
+  {
+    option: 'Reduced_Plastic',
+    label: 'Schadstoffreduzierte Herstellung',
   },
 ];

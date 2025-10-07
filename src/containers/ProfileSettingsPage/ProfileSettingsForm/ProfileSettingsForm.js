@@ -53,7 +53,7 @@ const DisplayNameMaybe = props => {
     : {};
 
   return (
-    <div className={css.sectionContainer}>
+    <>
       <H4 as="h2" className={css.sectionTitle}>
         <FormattedMessage id="ProfileSettingsForm.displayNameHeading" />
       </H4>
@@ -73,7 +73,7 @@ const DisplayNameMaybe = props => {
       <p className={css.extraInfo}>
         <FormattedMessage id="ProfileSettingsForm.displayNameInfo" />
       </p>
-    </div>
+    </>
   );
 };
 
@@ -299,11 +299,35 @@ class ProfileSettingsFormComponent extends Component {
             id: 'ProfileSettingsForm.addressPlaceholder',
           });
 
-          const extraInfoLabel = intl.formatMessage({
-            id: 'ProfileSettingsForm.extraInfo',
+          const openingHoursLabel = intl.formatMessage({
+            id: 'ProfileSettingsForm.openingHours',
           });
-          const extraInfoPlaceholder = intl.formatMessage({
-            id: 'ProfileSettingsForm.extraInfoPlaceholder',
+          const openingHoursPlaceholder = intl.formatMessage({
+            id: 'ProfileSettingsForm.openingHoursPlaceholder',
+          });
+
+          const bioMaxLengthMessage = intl.formatMessage({
+            id: 'ProfileSettingsForm.bioMaxLength',
+          });
+
+          const bioMinLengthMessage = intl.formatMessage({
+            id: 'ProfileSettingsForm.bioMinLength',
+          });
+
+          const shopPhoneNumberLabel = intl.formatMessage({
+            id: 'ProfileSettingsForm.shopPhoneNumber',
+          });
+
+          const shopPhoneNumberPlaceholder = intl.formatMessage({
+            id: 'ProfileSettingsForm.shopPhoneNumberPlaceholder',
+          });
+
+          const shopWebsiteLabel = intl.formatMessage({
+            id: 'ProfileSettingsForm.shopWebsite',
+          });
+
+          const shopWebsitePlaceholder = intl.formatMessage({
+            id: 'ProfileSettingsForm.shopWebsitePlaceholder',
           });
 
           return (
@@ -315,9 +339,12 @@ class ProfileSettingsFormComponent extends Component {
               }}
             >
               <div className={css.sectionContainer}>
-                <H4 as="h2" className={css.sectionTitle}>
-                  <FormattedMessage id="ProfileSettingsForm.yourProfilePicture" />
+                <H4 as="h2" className={css.sectionTitleBig}>
+                  <FormattedMessage id="ProfileSettingsForm.general" />
                 </H4>
+                <label className={css.logoLabel}>
+                  <FormattedMessage id="ProfileSettingsForm.yourProfilePicture" />
+                </label>
                 <Field
                   accept={ACCEPT_IMAGES}
                   id="profileImage"
@@ -409,21 +436,38 @@ class ProfileSettingsFormComponent extends Component {
                 </div>
               </div>
 
-              <DisplayNameMaybe userTypeConfig={userTypeConfig} intl={intl} />
+              <div className={css.sectionContainer}>
+                <DisplayNameMaybe userTypeConfig={userTypeConfig} intl={intl} />
+                <FieldTextInput
+                  type="text"
+                  id="shopTitle"
+                  className={css.shopTitle}
+                  name="shopTitle"
+                  label={titleLabel}
+                  placeholder={titlePlaceholder}
+                  validate={titleRequired}
+                />
+                <FieldTextInput
+                  type="textarea"
+                  id="bio"
+                  name="bio"
+                  label={bioLabel}
+                  validate={validators.composeValidators(
+                    validators.minLength(bioMinLengthMessage, 200),
+                    validators.maxLength(bioMaxLengthMessage, 1000)
+                  )}
+                  placeholder={bioPlaceholder}
+                />
+                <p className={css.extraInfo}>
+                  <FormattedMessage id="ProfileSettingsForm.bioInfo" values={{ marketplaceName }} />
+                </p>
+              </div>
 
               <div className={css.sectionContainer}>
-                <H4 as="h2" className={css.sectionTitle}>
+                <H4 as="h2" className={css.sectionTitleBig}>
                   <FormattedMessage id="ProfileSettingsForm.shopInfo" />
                 </H4>
                 <div className={css.infoContainer}>
-                  <FieldTextInput
-                    type="text"
-                    id="shopTitle"
-                    name="shopTitle"
-                    label={titleLabel}
-                    placeholder={titlePlaceholder}
-                    validate={titleRequired}
-                  />
                   <FieldLocationAutocompleteInput
                     rootClassName={css.input}
                     inputClassName={css.locationAutocompleteInput}
@@ -443,35 +487,38 @@ class ProfileSettingsFormComponent extends Component {
                     key={'locationValidation'}
                   />
                   <FieldTextInput
-                    type="textarea"
-                    id="shopExtraInfo"
-                    name="shopExtraInfo"
-                    label={extraInfoLabel}
-                    placeholder={extraInfoPlaceholder}
+                    id="shopOpeningHours "
+                    name="shopOpeningHours"
+                    label={openingHoursLabel}
+                    placeholder={openingHoursPlaceholder}
                   />
-                  <FieldMediaUpload
-                    name="shopMedia"
-                    multiple
-                    storagePath={`shopMedia/${currentUser.id.uuid}`}
-                    publicBaseUrl={PUBLIC_MEDIA_BASE_URL}
+                  <FieldTextInput
+                    id="shopPhoneNumber"
+                    name="shopPhoneNumber"
+                    label={shopPhoneNumberLabel}
+                    placeholder={shopPhoneNumberPlaceholder}
+                  />
+                  <FieldTextInput
+                    id="shopWebsite"
+                    name="shopWebsite"
+                    label={shopWebsiteLabel}
+                    placeholder={shopWebsitePlaceholder}
                   />
                 </div>
               </div>
-
-              <div className={classNames(css.sectionContainer)}>
-                <H4 as="h2" className={css.sectionTitle}>
-                  <FormattedMessage id="ProfileSettingsForm.bioHeading" />
+              <div className={css.sectionContainer}>
+                <H4 as="h2" className={css.sectionTitleBig}>
+                  <FormattedMessage id="ProfileSettingsForm.behindTheScenes" />
                 </H4>
-                <FieldTextInput
-                  type="textarea"
-                  id="bio"
-                  name="bio"
-                  label={bioLabel}
-                  placeholder={bioPlaceholder}
-                />
                 <p className={css.extraInfo}>
-                  <FormattedMessage id="ProfileSettingsForm.bioInfo" values={{ marketplaceName }} />
+                  <FormattedMessage id="ProfileSettingsForm.behindTheScenesInfo" />
                 </p>
+                <FieldMediaUpload
+                  name="shopMedia"
+                  multiple
+                  storagePath={`shopMedia/${currentUser.id.uuid}`}
+                  publicBaseUrl={PUBLIC_MEDIA_BASE_URL}
+                />
               </div>
               <div className={classNames(css.sectionContainer, css.lastSection)}>
                 {userFieldProps.map(({ key, ...fieldProps }) => (
