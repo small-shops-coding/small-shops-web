@@ -39,6 +39,22 @@ const toAttributeGroups = variants => {
   }));
 };
 
+const DEFAULT_INITIAL_VALUES = {
+  variants: [
+    {
+      type: 'size',
+      values: ['oneSize'],
+    },
+  ],
+  variantInfo: [
+    {
+      attributes: {
+        size: 'oneSize',
+      },
+    },
+  ],
+};
+
 const generateInitialValues = (listing, marketplaceCurrency) => {
   const { variants = [] } = listing?.attributes?.publicData;
   const listingImages = listing?.images || [];
@@ -54,7 +70,8 @@ const generateInitialValues = (listing, marketplaceCurrency) => {
     };
   }
   return {
-    variants: [],
+    variants: DEFAULT_INITIAL_VALUES.variants,
+    variantInfo: DEFAULT_INITIAL_VALUES.variantInfo,
   };
 };
 
@@ -177,7 +194,7 @@ const EditListingPricingAndStockPanel = props => {
             const originalImages = listing?.images || [];
             const images = variantInfo.map(variant => variant.imageId);
             const stockUpdate = {
-              oldTotal: listing?.currentStock?.attributes?.quantity || null,
+              oldTotal: listing?.currentStock?.attributes?.quantity ?? null,
               newTotal: formattedVariantInfo.reduce((sum, variant) => sum + variant.stock, 0),
             };
             return onSubmit({

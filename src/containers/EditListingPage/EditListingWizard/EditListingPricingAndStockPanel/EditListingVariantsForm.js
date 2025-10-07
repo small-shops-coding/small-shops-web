@@ -25,7 +25,7 @@ import {
 
 // Import modules from this directory
 import css from './EditListingVariantsForm.module.css';
-import { MOCK_SIZE_ENUMS } from '../../../../util/variants';
+import { COLOR_ENUMS, MATERIAL_ENUMS, SIZE_ENUMS } from '../../../../util/variants';
 import appSettings from '../../../../config/settings';
 import { FieldAddImage, FieldListingImage } from '../EditListingPhotosPanel/EditListingPhotosForm';
 
@@ -50,28 +50,30 @@ const getPriceValidators = (listingMinimumPriceSubUnits, marketplaceCurrency, in
     : priceRequired;
 };
 
-const getVariantNameSelectOptions = (listingFieldsConfig, variantType) => {
+const getVariantNameSelectOptions = (listingFieldsConfig, variantType, intl) => {
   if (variantType === 'size') {
     const sizeEnum =
-      listingFieldsConfig.find(field => field.key === 'size')?.enumOptions || MOCK_SIZE_ENUMS;
+      listingFieldsConfig.find(field => field.key === 'size')?.enumOptions || SIZE_ENUMS;
     return sizeEnum.map(size => ({
       value: size.option,
-      label: size.label,
+      label: intl.formatMessage({ id: size.label }),
     }));
   }
   if (variantType === 'color') {
-    const colorEnum = listingFieldsConfig.find(field => field.key === 'colour')?.enumOptions;
+    const colorEnum =
+      listingFieldsConfig.find(field => field.key === 'colour')?.enumOptions || COLOR_ENUMS;
     return colorEnum.map(color => ({
       value: color.option,
-      label: color.label,
+      label: intl.formatMessage({ id: color.label }),
     }));
   }
   if (variantType === 'material') {
-    const materialEnum = listingFieldsConfig.find(field => field.key === 'quality_standards')
-      ?.enumOptions;
+    const materialEnum =
+      listingFieldsConfig.find(field => field.key === 'quality_standards')?.enumOptions ||
+      MATERIAL_ENUMS;
     return materialEnum.map(material => ({
       value: material.option,
-      label: material.label,
+      label: intl.formatMessage({ id: material.label }),
     }));
   }
   return [];
@@ -218,7 +220,12 @@ const SetVariantInfoTable = props => {
   );
 };
 
-const mappingAllPossibleVariants = (variants, listingFieldsConfig, originalVariantInfo = []) => {
+const mappingAllPossibleVariants = (
+  variants,
+  listingFieldsConfig,
+  originalVariantInfo = [],
+  intl
+) => {
   // Filter variants that have both type and values selected
   const validVariants = variants.filter(variant => variant.type && variant.values.length > 0);
 
@@ -247,7 +254,7 @@ const mappingAllPossibleVariants = (variants, listingFieldsConfig, originalVaria
 
   // Helper function to get label from enum options
   const getValueLabel = (variantType, value) => {
-    const options = getVariantNameSelectOptions(listingFieldsConfig, variantType);
+    const options = getVariantNameSelectOptions(listingFieldsConfig, variantType, intl);
     const option = options.find(opt => opt.value === value);
     return option ? option.label : value;
   };
@@ -352,7 +359,8 @@ const RenderVariantsSettings = props => {
     const newVariantInfo = mappingAllPossibleVariants(
       newVariants,
       listingFieldsConfig,
-      originalVariantInfo
+      originalVariantInfo,
+      intl
     );
     if (values.length > 0) {
       form.change(`variantInfo`, newVariantInfo);
@@ -372,7 +380,7 @@ const RenderVariantsSettings = props => {
       }
       return variant;
     });
-    const variantInfo = mappingAllPossibleVariants(newVariants, listingFieldsConfig);
+    const variantInfo = mappingAllPossibleVariants(newVariants, listingFieldsConfig, [], intl);
     variantInfo.forEach((variant, index) => {
       const id = Object.values(variant.attributes).join('-');
       form.change(`variantInfo.${index}.id`, id);
@@ -399,14 +407,16 @@ const RenderVariantsSettings = props => {
                   </option>
                 ))}
               </FieldSelect>
-              <InlineTextButton
-                type="button"
-                onClick={() => {
-                  onDeleteVariant(variant);
-                }}
-              >
-                <IconDelete />
-              </InlineTextButton>
+              {variants.length > 1 && (
+                <InlineTextButton
+                  type="button"
+                  onClick={() => {
+                    onDeleteVariant(variant);
+                  }}
+                >
+                  <IconDelete />
+                </InlineTextButton>
+              )}
             </div>
             <div className={css.variantValuesWrapper}>
               {variant.type && (
@@ -418,21 +428,23 @@ const RenderVariantsSettings = props => {
                 </h4>
               )}
               <div className={css.variantValues}>
-                {getVariantNameSelectOptions(listingFieldsConfig, variant.type).map(option => (
-                  <InlineTextButton
-                    type="button"
-                    key={option.value}
-                    value={option.value}
-                    className={classNames(css.variantValueButton, {
-                      [css.variantValueButtonSelected]: variant.values.includes(option.value),
-                    })}
-                    onClick={() => {
-                      toggleVariantValue(variant.id, option.value);
-                    }}
-                  >
-                    {option.label}
-                  </InlineTextButton>
-                ))}
+                {getVariantNameSelectOptions(listingFieldsConfig, variant.type, intl).map(
+                  option => (
+                    <InlineTextButton
+                      type="button"
+                      key={option.value}
+                      value={option.value}
+                      className={classNames(css.variantValueButton, {
+                        [css.variantValueButtonSelected]: variant.values.includes(option.value),
+                      })}
+                      onClick={() => {
+                        toggleVariantValue(variant.id, option.value);
+                      }}
+                    >
+                      {option.label}
+                    </InlineTextButton>
+                  )
+                )}
               </div>
             </div>
           </div>
@@ -452,7 +464,7 @@ const RenderVariantsSettings = props => {
     );
   };
 
-  const rows = useMemo(() => mappingAllPossibleVariants(variants, listingFieldsConfig), [
+  const rows = useMemo(() => mappingAllPossibleVariants(variants, listingFieldsConfig, [], intl), [
     JSON.stringify(variants),
     JSON.stringify(listingFieldsConfig),
   ]);
@@ -586,7 +598,7 @@ export const EditListingVariantsForm = props => (
         !values.variantInfo ||
         values.variantInfo?.length === 0 ||
         values.variantInfo?.some(variant => !variant.imageId || !variant.price || !variant.sku);
-      console.log({ values });
+
       const { updateListingError, showListingsError } = fetchErrors || {};
       const variants = values.variants || [];
       return (

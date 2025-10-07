@@ -38,7 +38,7 @@ const QuantitySelector = ({
 
   const handleInputChange = e => {
     const newValue = parseInt(e.target.value, 10) || 0;
-    const clampedValue = Math.max(0, Math.min(newValue, maxQuantity || 999));
+    const clampedValue = Math.max(0, Math.min(newValue, maxQuantity || 10000000));
     setValue(clampedValue);
     onQuantityChange(clampedValue);
   };

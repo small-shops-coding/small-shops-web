@@ -19,6 +19,7 @@
 }
 
 .sectionTitle {
+  font-size: 14px;
 }
 
 .lastSection {
@@ -297,4 +298,8 @@
   display: flex;
   flex-direction: column;
   gap: 16px;
+}
+
+.shopTitle {
+  margin-bottom: 20px;
 }

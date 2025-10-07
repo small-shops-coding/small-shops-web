@@ -99,7 +99,6 @@ import CustomListingFields from './CustomListingFields';
 import ActionBarMaybe from './ActionBarMaybe';
 
 import css from './ListingPage.module.css';
-import { MOCK_VARIANTS } from '../../util/variants.js';
 import useMediaQuery from '../../hooks/useMediaQuery.js';
 import ProductOrderForm from '../../components/OrderPanel/ProductOrderForm/ProductOrderForm.js';
 
@@ -325,7 +324,7 @@ export const ListingPageComponent = props => {
     setImageCarouselOpen(true);
   };
 
-  const variants = currentListing.attributes.publicData.variants || MOCK_VARIANTS;
+  const variants = currentListing.attributes.publicData.variants || [];
   const selectedVariantFromListing = variants.find(
     variant =>
       ((selectedVariant?.color && variant?.color === selectedVariant?.color) ||

@@ -23,7 +23,7 @@ import FetchLineItemsError from '../FetchLineItemsError/FetchLineItemsError.js';
 
 import css from './ProductOrderForm.module.css';
 import debounce from 'lodash/debounce';
-import { MOCK_SIZE_ENUMS } from '../../../util/variants.js';
+import { COLOR_ENUMS, MATERIAL_ENUMS, SIZE_ENUMS } from '../../../util/variants.js';
 
 // Browsers can't render huge number of select options.
 // (stock is shown inside select element)
@@ -158,11 +158,13 @@ const renderForm = formRenderProps => {
     },
   }));
 
-  const colorEnum = listingFieldConfigs.find(field => field.key === 'colour')?.enumOptions || [];
+  const colorEnum =
+    listingFieldConfigs.find(field => field.key === 'colour')?.enumOptions || COLOR_ENUMS;
   const sizeEnum =
-    listingFieldConfigs.find(field => field.key === 'size')?.enumOptions || MOCK_SIZE_ENUMS;
+    listingFieldConfigs.find(field => field.key === 'size')?.enumOptions || SIZE_ENUMS;
   const materialEnum =
-    listingFieldConfigs.find(field => field.key === 'quality_standards')?.enumOptions || [];
+    listingFieldConfigs.find(field => field.key === 'quality_standards')?.enumOptions ||
+    MATERIAL_ENUMS;
 
   const { colors, sizes, materials } = variants.reduce(
     (acc, variant) => {
@@ -170,14 +172,20 @@ const renderForm = formRenderProps => {
         const alreadyExists = acc.colors.find(color => color.value === variant.attributes.color);
         if (!alreadyExists) {
           const label = getLabel(variant.attributes.color, colorEnum);
-          acc.colors.push({ label, value: variant.attributes.color });
+          acc.colors.push({
+            label: intl.formatMessage({ id: label }),
+            value: variant.attributes.color,
+          });
         }
       }
       if (variant.attributes.size) {
         const alreadyExists = acc.sizes.find(size => size.value === variant.attributes.size);
         if (!alreadyExists) {
           const label = getLabel(variant.attributes.size, sizeEnum);
-          acc.sizes.push({ label, value: variant.attributes.size });
+          acc.sizes.push({
+            label: intl.formatMessage({ id: label }),
+            value: variant.attributes.size,
+          });
         }
       }
       if (variant.attributes.material) {
@@ -186,7 +194,10 @@ const renderForm = formRenderProps => {
         );
         if (!alreadyExists) {
           const label = getLabel(variant.attributes.material, materialEnum);
-          acc.materials.push({ label, value: variant.attributes.material });
+          acc.materials.push({
+            label: intl.formatMessage({ id: label }),
+            value: variant.attributes.material,
+          });
         }
       }
 

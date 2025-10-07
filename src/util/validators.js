@@ -271,3 +271,21 @@ export const validSGID = message => value => {
 
 export const composeValidators = (...validators) => value =>
   validators.reduce((error, validator) => error || validator(value), VALID);
+
+export const maxLengthTextarea = (message, maximumLength) => value => {
+  if (!value) {
+    return VALID;
+  }
+  const valueWithoutNewLines = value.replace(/\n/g, '');
+  const hasLength = valueWithoutNewLines && typeof valueWithoutNewLines.length === 'number';
+  return hasLength && valueWithoutNewLines.length <= maximumLength ? VALID : message;
+};
+
+export const minLengthTextarea = (message, minimumLength) => value => {
+  if (!value) {
+    return VALID;
+  }
+  const valueWithoutNewLines = value.replace(/\n/g, '');
+  const hasLength = valueWithoutNewLines && typeof valueWithoutNewLines.length === 'number';
+  return hasLength && valueWithoutNewLines.length >= minimumLength ? VALID : message;
+};
