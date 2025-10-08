@@ -310,7 +310,7 @@ export const EditListingPageComponent = props => {
       variantsImages,
       removedVariantsImageIds
     );
-    console.log({ variantsImages, images });
+
     const title = isNewListingFlow
       ? intl.formatMessage({ id: 'EditListingPage.titleCreateListing' })
       : intl.formatMessage({ id: 'EditListingPage.titleEditListing' });
