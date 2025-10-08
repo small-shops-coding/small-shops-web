@@ -48,6 +48,7 @@ const DEFAULT_INITIAL_VALUES = {
   ],
   variantInfo: [
     {
+      id: 'oneSize',
       attributes: {
         size: 'oneSize',
       },
@@ -101,6 +102,7 @@ const generateInitialValues = (listing, marketplaceCurrency) => {
  * @param {Function} props.onUploadVariantsImage - The upload variants image function
  * @param {Function} props.onRemoveVariantsImage - The remove variants image function
  * @param {Object} props.variantsImages - The variants images
+ * @param {Object} props.images - The images
  * @returns {JSX.Element}
  */
 const EditListingPricingAndStockPanel = props => {
@@ -125,6 +127,7 @@ const EditListingPricingAndStockPanel = props => {
     onUploadVariantsImage,
     onRemoveVariantsImage,
     variantsImages,
+    images: listingImages,
   } = props;
 
   const classes = classNames(rootClassName || css.root, className);
@@ -191,19 +194,20 @@ const EditListingPricingAndStockPanel = props => {
             const minPrice = minPriceAsSubunits
               ? new Money(minPriceAsSubunits, marketplaceCurrency)
               : null;
-            const originalImages = listing?.images || [];
+            const originalImages = listingImages || [];
             const images = variantInfo.map(variant => variant.imageId);
             const stockUpdate = {
               oldTotal: listing?.currentStock?.attributes?.quantity ?? null,
               newTotal: formattedVariantInfo.reduce((sum, variant) => sum + variant.stock, 0),
             };
+            const finalImages = [...originalImages, ...images];
             return onSubmit({
               price: minPrice,
               stockUpdate,
               publicData: {
                 variants: formattedVariantInfo,
               },
-              images: [...originalImages, ...images],
+              images: finalImages,
             });
           }}
           listingMinimumPriceSubUnits={listingMinimumPriceSubUnits}

@@ -209,6 +209,7 @@ const EditListingWizardTab = props => {
           onUploadVariantsImage={onUploadVariantsImage}
           onRemoveVariantsImage={onRemoveVariantsImage}
           variantsImages={variantsImages}
+          images={images}
         />
       );
     }

@@ -65,16 +65,12 @@ const pickRenderableImages = (
   currentListing,
   uploadedImages,
   uploadedImageIdsInOrder = [],
-  removedImageIds = []
+  removedImageIds = [],
+  currentListingVariantsImages = []
 ) => {
   // Images are passed to EditListingForm so that it can generate thumbnails out of them
   const currentListingImages = currentListing && currentListing.images ? currentListing.images : [];
-  console.log({ currentListing });
   //ignore images from variants
-  const currentListingVariantsImages =
-    currentListing && currentListing?.attributes?.publicData?.variants
-      ? currentListing.attributes.publicData.variants.map(variant => variant.imageId)
-      : [];
   // Images not yet connected to the listing
   const unattachedImages = uploadedImageIdsInOrder.map(i => uploadedImages[i]);
   const allImages = currentListingImages.concat(unattachedImages);
@@ -95,6 +91,32 @@ const pickRenderableImages = (
 
   // Return array of image entities. Something like: [{ id, imageId, type, attributes }, ...]
   return allImages.reduce(pickImagesAndIds, { imageEntities: [], imageIds: [] }).imageEntities;
+};
+
+const pickRenderableVariantsImages = (
+  currentListing,
+  uploadedVariantsImages,
+  uploadedVariantsImagesOrder,
+  removedVariantsImageIds
+) => {
+  const currentListingVariantsImages =
+    currentListing && currentListing?.attributes?.publicData?.variants
+      ? currentListing.attributes.publicData.variants.map(variant => variant.imageId)
+      : [];
+  const unattachedVariantsImages = uploadedVariantsImagesOrder.map(
+    i => uploadedVariantsImages[i].imageId
+  );
+  const allVariantsImages = currentListingVariantsImages.concat(unattachedVariantsImages);
+  const pickImagesAndIds = (imgs, imgId) => {
+    const shouldInclude =
+      !imgs.imageIds.includes(imgId) && !removedVariantsImageIds.some(id => id.uuid === imgId);
+
+    if (shouldInclude) {
+      imgs.imageIds.push(imgId);
+    }
+    return imgs;
+  };
+  return allVariantsImages.reduce(pickImagesAndIds, { imageIds: [] }).imageIds;
 };
 
 /**
@@ -269,18 +291,20 @@ export const EditListingPageComponent = props => {
 
     // Show form if user is posting a new listing or editing existing one
     const disableForm = page.redirectToListing && !showListingsError;
+
+    const variantsImages = pickRenderableVariantsImages(
+      currentListing,
+      uploadedVariantsImages,
+      uploadedVariantsImagesOrder,
+      removedVariantsImageIds
+    );
+
     const images = pickRenderableImages(
       currentListing,
       uploadedImages,
       uploadedImagesOrder,
-      removedImageIds
-    );
-
-    const variantsImages = pickRenderableImages(
-      { images: [] },
-      uploadedVariantsImages,
-      uploadedVariantsImagesOrder,
-      removedVariantsImageIds
+      removedImageIds,
+      variantsImages
     );
 
     const title = isNewListingFlow

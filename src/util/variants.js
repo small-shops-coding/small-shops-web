@@ -130,11 +130,11 @@ export const MATERIAL_ENUMS = [
     option: 'Up_or_Recycled',
   },
   {
-    option: 'Transparent_Supply_Chain',
     label: 'MaterialEnum.Transparent_Supply_Chain',
+    option: 'Transparent_Supply_Chain',
   },
   {
+    label: 'MaterialEnum.Reduced_Plastic',
     option: 'Reduced_Plastic',
-    label: 'Schadstoffreduzierte Herstellung',
   },
 ];
