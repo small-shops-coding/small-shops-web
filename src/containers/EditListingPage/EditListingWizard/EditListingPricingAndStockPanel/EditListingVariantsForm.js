@@ -387,6 +387,10 @@ const RenderVariantsSettings = props => {
   };
 
   const allVariantHasSelectedType = variants.length > 0 && variants.length === 3;
+  const onChangeVariantType = (type, index) => {
+    form.change(`variants.${index}.type`, type);
+    form.change(`variants.${index}.values`, []);
+  };
 
   const renderVariantTypeStep = () => {
     return (
@@ -394,7 +398,11 @@ const RenderVariantsSettings = props => {
         {variants.map((variant, index) => (
           <div key={variant.id} className={css.variant}>
             <div className={css.variantName}>
-              <FieldSelect name={`variants.${index}.type`} className={css.variantNameSelect}>
+              <FieldSelect
+                onChange={value => onChangeVariantType(value, index)}
+                name={`variants.${index}.type`}
+                className={css.variantNameSelect}
+              >
                 <option value="" disabled>
                   {intl.formatMessage({ id: 'EditListingVariantsForm.selectVariantType' })}
                 </option>
@@ -584,7 +592,7 @@ export const EditListingVariantsForm = props => (
         variantsImages,
       } = formRenderProps;
       const intl = useIntl();
-
+      console.log({ variantsImages });
       const classes = classNames(rootClassName || css.root, className);
       const submitReady = (updated && pristine) || ready;
       const submitInProgress = updateInProgress;

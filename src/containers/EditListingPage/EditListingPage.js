@@ -66,7 +66,8 @@ const pickRenderableImages = (
   uploadedImages,
   uploadedImageIdsInOrder = [],
   removedImageIds = [],
-  currentListingVariantsImages = []
+  currentListingVariantsImages = [],
+  removedVariantsImageIds = []
 ) => {
   // Images are passed to EditListingForm so that it can generate thumbnails out of them
   const currentListingImages = currentListing && currentListing.images ? currentListing.images : [];
@@ -80,7 +81,8 @@ const pickRenderableImages = (
     const shouldInclude =
       !imgs.imageIds.includes(imgId) &&
       !removedImageIds.includes(imgId) &&
-      !currentListingVariantsImages.some(imageId => imageId === imgId.uuid);
+      !currentListingVariantsImages.some(imageId => imageId === imgId.uuid) &&
+      !removedVariantsImageIds.some(imageId => imageId.uuid === imgId.uuid);
 
     if (shouldInclude) {
       imgs.imageEntities.push(img);
@@ -96,16 +98,17 @@ const pickRenderableImages = (
 const pickRenderableVariantsImages = (
   currentListing,
   uploadedVariantsImages,
-  uploadedVariantsImagesOrder,
+  _uploadedVariantsImagesOrder,
   removedVariantsImageIds
 ) => {
   const currentListingVariantsImages =
     currentListing && currentListing?.attributes?.publicData?.variants
       ? currentListing.attributes.publicData.variants.map(variant => variant.imageId)
       : [];
-  const unattachedVariantsImages = uploadedVariantsImagesOrder.map(
-    i => uploadedVariantsImages[i].imageId
-  );
+  const unattachedVariantsImages = Object.keys(uploadedVariantsImages)
+    .map(i => uploadedVariantsImages[i]?.imageId?.uuid)
+    .filter(v => !!v);
+
   const allVariantsImages = currentListingVariantsImages.concat(unattachedVariantsImages);
   const pickImagesAndIds = (imgs, imgId) => {
     const shouldInclude =
@@ -304,9 +307,10 @@ export const EditListingPageComponent = props => {
       uploadedImages,
       uploadedImagesOrder,
       removedImageIds,
-      variantsImages
+      variantsImages,
+      removedVariantsImageIds
     );
-
+    console.log({ variantsImages, images });
     const title = isNewListingFlow
       ? intl.formatMessage({ id: 'EditListingPage.titleCreateListing' })
       : intl.formatMessage({ id: 'EditListingPage.titleEditListing' });
