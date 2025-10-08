@@ -164,7 +164,10 @@ exports.transactionLineItems = (listing, orderData, providerCommission, customer
    * - includedFor
    */
 
-  const code = isOrderProduct ? `line-item/${variantMaybe.sku}` : `line-item/${unitType}`;
+  const attributes = variantMaybe?.attributes;
+  const attributesString = attributes ? Object.values(attributes).join('-') : '';
+
+  const code = isOrderProduct ? `line-item/${attributesString}` : `line-item/${unitType}`;
 
   // Here "extra line-items" means line-items that are tied to unit type
   // E.g. by default, "shipping-fee" is tied to 'item' aka buying products.

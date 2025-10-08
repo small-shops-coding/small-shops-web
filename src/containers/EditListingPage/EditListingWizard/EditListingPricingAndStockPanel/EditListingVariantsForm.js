@@ -52,28 +52,39 @@ const getPriceValidators = (listingMinimumPriceSubUnits, marketplaceCurrency, in
 
 const getVariantNameSelectOptions = (listingFieldsConfig, variantType, intl) => {
   if (variantType === 'size') {
-    const sizeEnum =
-      listingFieldsConfig.find(field => field.key === 'size')?.enumOptions || SIZE_ENUMS;
+    const enumOptions = listingFieldsConfig.find(field => field.key === 'size')?.enumOptions || [];
+    const hasFetchedEnumOptions = enumOptions.length > 0;
+    const sizeEnum = hasFetchedEnumOptions ? enumOptions : SIZE_ENUMS;
     return sizeEnum.map(size => ({
       value: size.option,
-      label: intl.formatMessage({ id: size.label }),
+      label: !hasFetchedEnumOptions
+        ? intl.formatMessage({ id: size.label })
+        : size.label || size.option,
     }));
   }
   if (variantType === 'color') {
-    const colorEnum =
-      listingFieldsConfig.find(field => field.key === 'colour')?.enumOptions || COLOR_ENUMS;
+    const enumOptions =
+      listingFieldsConfig.find(field => field.key === 'colour')?.enumOptions || [];
+    const hasFetchedEnumOptions = enumOptions.length > 0;
+    const colorEnum = hasFetchedEnumOptions ? enumOptions : COLOR_ENUMS;
     return colorEnum.map(color => ({
       value: color.option,
-      label: intl.formatMessage({ id: color.label }),
+      label: !hasFetchedEnumOptions
+        ? intl.formatMessage({ id: color.label })
+        : color.label || color.option,
     }));
   }
   if (variantType === 'material') {
-    const materialEnum =
-      listingFieldsConfig.find(field => field.key === 'quality_standards')?.enumOptions ||
-      MATERIAL_ENUMS;
+    const enumOptions =
+      listingFieldsConfig.find(field => field.key === 'quality_standards')?.enumOptions || [];
+    const hasFetchedEnumOptions = enumOptions.length > 0;
+    const materialEnum = hasFetchedEnumOptions ? enumOptions : MATERIAL_ENUMS;
+
     return materialEnum.map(material => ({
       value: material.option,
-      label: intl.formatMessage({ id: material.label }),
+      label: !hasFetchedEnumOptions
+        ? intl.formatMessage({ id: material.label })
+        : material.label || material.option,
     }));
   }
   return [];
@@ -147,22 +158,6 @@ const SetVariantInfoTable = props => {
                     name={`variantInfo.${rowIndex}.sku`}
                     placeholder="SKU"
                     className={css.inputField}
-                    validate={validators.composeValidators(
-                      validators.required(
-                        intl.formatMessage({ id: 'EditListingVariantsForm.skuRequired' })
-                      ),
-                      validators.uniqueString(
-                        rowIndex,
-                        values.variantInfo?.map(variant => variant.sku) || [],
-                        (_, slug) =>
-                          intl.formatMessage(
-                            { id: 'EditListingVariantsForm.skuMustBeUnique' },
-                            { slug }
-                          ),
-                        s => s
-                      )
-                    )}
-                    hideErrorMessage
                   />
                 </td>
                 <td>
@@ -368,9 +363,9 @@ const RenderVariantsSettings = props => {
     form.change(`variants`, newVariants);
   };
 
-  const toggleVariantValue = (id, value) => {
+  const toggleVariantValue = (type, value) => {
     const newVariants = variants.map(variant => {
-      if (variant.id === id) {
+      if (variant.type === type) {
         return {
           ...variant,
           values: variant.values.includes(value)
@@ -381,11 +376,13 @@ const RenderVariantsSettings = props => {
       return variant;
     });
     const variantInfo = mappingAllPossibleVariants(newVariants, listingFieldsConfig, [], intl);
-    variantInfo.forEach((variant, index) => {
-      const id = Object.values(variant.attributes).join('-');
-      form.change(`variantInfo.${index}.id`, id);
-      form.change(`variantInfo.${index}.attributes`, variant.attributes);
+    const formattedVariantInfo = variantInfo.map(variant => {
+      return {
+        id: Object.values(variant.attributes).join('-'),
+        attributes: variant.attributes,
+      };
     });
+    form.change(`variantInfo`, formattedVariantInfo);
     form.change(`variants`, newVariants);
   };
 
@@ -438,7 +435,7 @@ const RenderVariantsSettings = props => {
                         [css.variantValueButtonSelected]: variant.values.includes(option.value),
                       })}
                       onClick={() => {
-                        toggleVariantValue(variant.id, option.value);
+                        toggleVariantValue(variant.type, option.value);
                       }}
                     >
                       {option.label}
@@ -597,7 +594,7 @@ export const EditListingVariantsForm = props => (
         submitInProgress ||
         !values.variantInfo ||
         values.variantInfo?.length === 0 ||
-        values.variantInfo?.some(variant => !variant.imageId || !variant.price || !variant.sku);
+        values.variantInfo?.some(variant => !variant.imageId || !variant.price);
 
       const { updateListingError, showListingsError } = fetchErrors || {};
       const variants = values.variants || [];
