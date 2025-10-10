@@ -56,17 +56,14 @@ const DEFAULT_INITIAL_VALUES = {
   ],
 };
 
-const generateInitialValues = (listing, marketplaceCurrency) => {
-  const { variants = [] } = listing?.attributes?.publicData;
-  const listingImages = listing?.images || [];
-  if (variants.length > 0 && !!listing) {
+const generateInitialValues = (variants = [], marketplaceCurrency) => {
+  if (variants.length > 0) {
     return {
       variants: toAttributeGroups(variants),
       variantInfo: variants.map(variant => {
-        const { priceAsSubunits, imageId, ...rest } = variant;
+        const { priceAsSubunits, ...rest } = variant;
         const price = priceAsSubunits ? new Money(priceAsSubunits, marketplaceCurrency) : null;
-        const image = listingImages.find(image => image.id.uuid === variant.imageId);
-        return { ...rest, imageId: image, price };
+        return { ...rest, price };
       }),
     };
   }
@@ -99,9 +96,6 @@ const generateInitialValues = (listing, marketplaceCurrency) => {
  * @param {number} props.listingImageConfig.aspectWidth - The aspect width
  * @param {number} props.listingImageConfig.aspectHeight - The aspect height
  * @param {string} props.listingImageConfig.variantPrefix - The variant prefix
- * @param {Function} props.onUploadVariantsImage - The upload variants image function
- * @param {Function} props.onRemoveVariantsImage - The remove variants image function
- * @param {Object} props.variantsImages - The variants images
  * @param {Object} props.images - The images
  * @returns {JSX.Element}
  */
@@ -124,9 +118,6 @@ const EditListingPricingAndStockPanel = props => {
     errors,
     listingFieldsConfig,
     listingImageConfig,
-    onUploadVariantsImage,
-    onRemoveVariantsImage,
-    variantsImages,
     images: listingImages,
   } = props;
 
@@ -147,10 +138,10 @@ const EditListingPricingAndStockPanel = props => {
     marketplaceCurrency,
     'stripe'
   );
-
+  const listingVariants = listing?.attributes?.publicData?.variants || [];
   const initialValues = useMemo(() => {
-    return generateInitialValues(listing, marketplaceCurrency);
-  }, [JSON.stringify(listing), JSON.stringify(marketplaceCurrency)]);
+    return generateInitialValues(listingVariants, marketplaceCurrency);
+  }, [JSON.stringify(listingVariants), JSON.stringify(marketplaceCurrency)]);
   const priceCurrencyValid = !isStripeCompatibleCurrency
     ? false
     : marketplaceCurrency && initialValues.price instanceof Money
@@ -179,12 +170,10 @@ const EditListingPricingAndStockPanel = props => {
           onSubmit={values => {
             const { variantInfo } = values;
             const formattedVariantInfo = variantInfo.map(variant => {
-              const { price, imageId: image, ...rest } = variant;
+              const { price, ...rest } = variant;
               const priceAsSubunits = price?.amount;
-              const imageId = image?.id?.uuid;
               return {
                 ...rest,
-                imageId,
                 priceAsSubunits,
               };
             });
@@ -194,20 +183,16 @@ const EditListingPricingAndStockPanel = props => {
             const minPrice = minPriceAsSubunits
               ? new Money(minPriceAsSubunits, marketplaceCurrency)
               : null;
-            const originalImages = listingImages || [];
-            const images = variantInfo.map(variant => variant.imageId);
             const stockUpdate = {
               oldTotal: listing?.currentStock?.attributes?.quantity ?? null,
               newTotal: formattedVariantInfo.reduce((sum, variant) => sum + variant.stock, 0),
             };
-            const finalImages = [...originalImages, ...images];
             return onSubmit({
               price: minPrice,
               stockUpdate,
               publicData: {
                 variants: formattedVariantInfo,
               },
-              images: finalImages,
             });
           }}
           listingMinimumPriceSubUnits={listingMinimumPriceSubUnits}
@@ -222,9 +207,7 @@ const EditListingPricingAndStockPanel = props => {
           fetchErrors={errors}
           listingFieldsConfig={listingFieldsConfig}
           listingImageConfig={listingImageConfig}
-          onUploadVariantsImage={onUploadVariantsImage}
-          onRemoveVariantsImage={onRemoveVariantsImage}
-          variantsImages={variantsImages}
+          images={listingImages}
         />
       ) : (
         <div className={css.priceCurrencyInvalid}>

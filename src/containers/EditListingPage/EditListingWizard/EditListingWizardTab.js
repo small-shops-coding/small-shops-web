@@ -93,7 +93,6 @@ const EditListingWizardTab = props => {
     handlePublishListing,
     history,
     images,
-    variantsImages,
     listing,
     weeklyExceptionQueries,
     monthlyExceptionQueries,
@@ -107,8 +106,6 @@ const EditListingWizardTab = props => {
     onManageDisableScrolling,
     onListingTypeChange,
     onRemoveImage,
-    onUploadVariantsImage,
-    onRemoveVariantsImage,
     updatedTab,
     updateInProgress,
     tabSubmitButtonText,
@@ -206,9 +203,6 @@ const EditListingWizardTab = props => {
           listingMinimumPriceSubUnits={config.listingMinimumPriceSubUnits}
           listingFieldsConfig={config.listing.listingFields}
           listingImageConfig={config.layout.listingImage}
-          onUploadVariantsImage={onUploadVariantsImage}
-          onRemoveVariantsImage={onRemoveVariantsImage}
-          variantsImages={variantsImages}
           images={images}
         />
       );

@@ -16,6 +16,7 @@ import {
   FieldCurrencyInput,
   FieldQuantity,
   FieldSelect,
+  FieldSelectImage,
   FieldTextInput,
   Form,
   IconDelete,
@@ -27,7 +28,6 @@ import {
 import css from './EditListingVariantsForm.module.css';
 import { COLOR_ENUMS, MATERIAL_ENUMS, SIZE_ENUMS } from '../../../../util/variants';
 import appSettings from '../../../../config/settings';
-import { FieldAddImage, FieldListingImage } from '../EditListingPhotosPanel/EditListingPhotosForm';
 
 const { Money } = sdkTypes;
 
@@ -95,34 +95,14 @@ const SetVariantInfoTable = props => {
     variants,
     intl,
     getVariantTypeLabel,
-    form,
     marketplaceCurrency,
     listingImageConfig,
-    onUploadVariantsImage,
-    onRemoveVariantsImage,
     rows,
+    images,
   } = props;
 
-  const onImageUploadHandler = async (file, rowIndex) => {
-    if (file) {
-      form.change(`variantInfo.${rowIndex}.imageId`, {
-        file,
-      });
-      const response = await onUploadVariantsImage(
-        { id: `${file.name}_${Date.now()}`, file },
-        listingImageConfig
-      );
-      if (response?.id?.uuid) {
-        form.change(`variantInfo.${rowIndex}.imageId`, response);
-      } else {
-        form.change(`variantInfo.${rowIndex}.imageId`, null);
-      }
-    }
-  };
-
-  const values = form.getState().values;
-  const { aspectWidth = 1, aspectHeight = 1, variantPrefix } = listingImageConfig;
   const priceValidators = getPriceValidators(1, marketplaceCurrency, intl);
+
   return (
     <div className={css.variantInfoTable}>
       <h4 className={css.variantInfoTableTitle}>
@@ -132,18 +112,24 @@ const SetVariantInfoTable = props => {
         <table className={css.variantInfoTableTable}>
           <thead>
             <tr>
-              <th style={{ width: '50px' }}>
-                {intl.formatMessage({ id: 'EditListingVariantsForm.no' })}
-              </th>
+              <th>{intl.formatMessage({ id: 'EditListingVariantsForm.no' })}</th>
               {variants.map(variant => (
                 <th key={variant.id} style={{ width: variant.type === 'material' ? '300px' : '' }}>
                   <span>{getVariantTypeLabel(variant.type)}</span>
                 </th>
               ))}
-              <th>{intl.formatMessage({ id: 'EditListingVariantsForm.sku' })}</th>
-              <th>{intl.formatMessage({ id: 'EditListingVariantsForm.price' })}</th>
-              <th>{intl.formatMessage({ id: 'EditListingVariantsForm.stock' })}</th>
-              <th>{intl.formatMessage({ id: 'EditListingVariantsForm.image' })}</th>
+              <th className={css.thSku}>
+                {intl.formatMessage({ id: 'EditListingVariantsForm.sku' })}
+              </th>
+              <th className={css.thPrice}>
+                {intl.formatMessage({ id: 'EditListingVariantsForm.price' })}
+              </th>
+              <th className={css.thStock}>
+                {intl.formatMessage({ id: 'EditListingVariantsForm.stock' })}
+              </th>
+              <th className={css.thImage}>
+                {intl.formatMessage({ id: 'EditListingVariantsForm.image' })}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -177,34 +163,18 @@ const SetVariantInfoTable = props => {
                     className={css.inputField}
                   />
                 </td>
-                <td>
-                  <FieldListingImage
-                    className={css.variantImage}
-                    key={`variantInfo.${rowIndex}.imageId`}
+                <td className={css.tdImage}>
+                  <FieldSelectImage
+                    hideErrorMessage
                     name={`variantInfo.${rowIndex}.imageId`}
-                    onRemoveImage={imageId => {
-                      form.change(`variantInfo.${rowIndex}.imageId`, null);
-                      onRemoveVariantsImage(imageId);
-                    }}
+                    className={css.inputField}
+                    options={images}
+                    listingImageConfig={listingImageConfig}
                     intl={intl}
-                    aspectWidth={aspectWidth}
-                    aspectHeight={aspectHeight}
-                    variantPrefix={variantPrefix}
+                    validate={validators.required(
+                      intl.formatMessage({ id: 'EditListingVariantsForm.imageRequired' })
+                    )}
                   />
-                  {values?.variantInfo?.[rowIndex]?.imageId ? null : (
-                    <FieldAddImage
-                      id={`variantInfo.${rowIndex}.imageId`}
-                      name={`variantInfo.${rowIndex}.imageId`}
-                      accept="image/*"
-                      className={css.inputField}
-                      validate={validators.required(
-                        intl.formatMessage({ id: 'EditListingVariantsForm.imageRequired' })
-                      )}
-                      onImageUploadHandler={file => onImageUploadHandler(file, rowIndex)}
-                      type="file"
-                      formApi={form}
-                    />
-                  )}
                 </td>
               </tr>
             ))}
@@ -286,12 +256,11 @@ const RenderVariantsSettings = props => {
     marketplaceCurrency,
     listingImageConfig,
     listingMinimumPriceSubUnits,
-    onUploadVariantsImage,
-    onRemoveVariantsImage,
     saveActionMsg,
     submitInProgress,
     submitDisabled,
     submitReady,
+    images,
   } = props;
   const sizeLabel = intl.formatMessage({ id: 'EditListingVariantsForm.size' });
   const colorLabel = intl.formatMessage({ id: 'EditListingVariantsForm.color' });
@@ -387,6 +356,10 @@ const RenderVariantsSettings = props => {
   };
 
   const allVariantHasSelectedType = variants.length > 0 && variants.length === 3;
+  const onChangeVariantType = (type, index) => {
+    form.change(`variants.${index}.type`, type);
+    form.change(`variants.${index}.values`, []);
+  };
 
   const renderVariantTypeStep = () => {
     return (
@@ -394,7 +367,11 @@ const RenderVariantsSettings = props => {
         {variants.map((variant, index) => (
           <div key={variant.id} className={css.variant}>
             <div className={css.variantName}>
-              <FieldSelect name={`variants.${index}.type`} className={css.variantNameSelect}>
+              <FieldSelect
+                onChange={value => onChangeVariantType(value, index)}
+                name={`variants.${index}.type`}
+                className={css.variantNameSelect}
+              >
                 <option value="" disabled>
                   {intl.formatMessage({ id: 'EditListingVariantsForm.selectVariantType' })}
                 </option>
@@ -475,9 +452,8 @@ const RenderVariantsSettings = props => {
       marketplaceCurrency={marketplaceCurrency}
       listingImageConfig={listingImageConfig}
       listingMinimumPriceSubUnits={listingMinimumPriceSubUnits}
-      onUploadVariantsImage={onUploadVariantsImage}
-      onRemoveVariantsImage={onRemoveVariantsImage}
       rows={rows}
+      images={images}
     />
   );
 
@@ -551,9 +527,6 @@ const RenderVariantsSettings = props => {
  * @param {number} props.listingImageConfig.aspectWidth - The aspect width
  * @param {number} props.listingImageConfig.aspectHeight - The aspect height
  * @param {string} props.listingImageConfig.variantPrefix - The variant prefix
- * @param {Function} props.onUploadVariantsImage - The upload variants image function
- * @param {Function} props.onRemoveVariantsImage - The remove variants image function
- * @param {Object} props.variantsImages - The variants images
  * @returns {JSX.Element}
  */
 export const EditListingVariantsForm = props => (
@@ -579,12 +552,9 @@ export const EditListingVariantsForm = props => (
         form,
         listingFieldsConfig,
         listingImageConfig,
-        onUploadVariantsImage,
-        onRemoveVariantsImage,
-        variantsImages,
+        images,
       } = formRenderProps;
       const intl = useIntl();
-
       const classes = classNames(rootClassName || css.root, className);
       const submitReady = (updated && pristine) || ready;
       const submitInProgress = updateInProgress;
@@ -595,7 +565,7 @@ export const EditListingVariantsForm = props => (
         !values.variantInfo ||
         values.variantInfo?.length === 0 ||
         values.variantInfo?.some(variant => !variant.imageId || !variant.price);
-
+      console.log(values.variantInfo);
       const { updateListingError, showListingsError } = fetchErrors || {};
       const variants = values.variants || [];
       return (
@@ -619,13 +589,11 @@ export const EditListingVariantsForm = props => (
             marketplaceCurrency={marketplaceCurrency}
             listingImageConfig={listingImageConfig}
             listingMinimumPriceSubUnits={listingMinimumPriceSubUnits}
-            onUploadVariantsImage={onUploadVariantsImage}
-            onRemoveVariantsImage={onRemoveVariantsImage}
-            variantsImages={variantsImages}
             saveActionMsg={saveActionMsg}
             submitInProgress={submitInProgress}
             submitDisabled={submitDisabled}
             submitReady={submitReady}
+            images={images}
           />
         </Form>
       );

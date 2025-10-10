@@ -350,9 +350,9 @@
   "EditListingWizard.default-inquiry.new.savePhotos": "Eintrag veröffentlichen",
   "EditListingWizard.default-inquiry.new.savePricing": "Weiter",
   "EditListingWizard.default-inquiry.new.saveStyle": "Eintrag veröffentlichen",
-  "EditListingWizard.default-purchase.new.saveDelivery": "Weiter",
+  "EditListingWizard.default-purchase.new.saveDelivery": "Eintrag veröffentlichen",
   "EditListingWizard.default-purchase.new.saveDetails": "Weiter",
-  "EditListingWizard.default-purchase.new.savePhotos": "Eintrag veröffentlichen",
+  "EditListingWizard.default-purchase.new.savePhotos": "Weiter",
   "EditListingWizard.default-purchase.new.savePricingAndStock": "Weiter",
   "EditListingWizard.default-purchase.new.saveStyle": "Eintrag veröffentlichen",
   "EditListingWizard.edit.saveAvailability": "Änderungen speichern",
@@ -1278,5 +1278,7 @@
   "ProfileSettingsForm.openingHoursPlaceholder": "Gib deine Öffnungszeiten ein…",
   "ProfilePage.shopOpeningHours": "Öffnungszeiten",
   "ProfilePage.shopPhoneNumber": "Telefonnummer",
-  "ProfilePage.shopWebsite": "Website"
+  "ProfilePage.shopWebsite": "Website",
+  "FieldSelectImage.savedImageAltText": "Gespeichertes Bild",
+  "FieldSelectImage.placeholder": "Bild auswählen"
 }
