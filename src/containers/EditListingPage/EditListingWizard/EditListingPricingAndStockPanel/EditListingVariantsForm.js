@@ -132,18 +132,24 @@ const SetVariantInfoTable = props => {
         <table className={css.variantInfoTableTable}>
           <thead>
             <tr>
-              <th style={{ width: '50px' }}>
-                {intl.formatMessage({ id: 'EditListingVariantsForm.no' })}
-              </th>
+              <th>{intl.formatMessage({ id: 'EditListingVariantsForm.no' })}</th>
               {variants.map(variant => (
                 <th key={variant.id} style={{ width: variant.type === 'material' ? '300px' : '' }}>
                   <span>{getVariantTypeLabel(variant.type)}</span>
                 </th>
               ))}
-              <th>{intl.formatMessage({ id: 'EditListingVariantsForm.sku' })}</th>
-              <th>{intl.formatMessage({ id: 'EditListingVariantsForm.price' })}</th>
-              <th>{intl.formatMessage({ id: 'EditListingVariantsForm.stock' })}</th>
-              <th>{intl.formatMessage({ id: 'EditListingVariantsForm.image' })}</th>
+              <th className={css.thSku}>
+                {intl.formatMessage({ id: 'EditListingVariantsForm.sku' })}
+              </th>
+              <th className={css.thPrice}>
+                {intl.formatMessage({ id: 'EditListingVariantsForm.price' })}
+              </th>
+              <th className={css.thStock}>
+                {intl.formatMessage({ id: 'EditListingVariantsForm.stock' })}
+              </th>
+              <th className={css.thImage}>
+                {intl.formatMessage({ id: 'EditListingVariantsForm.image' })}
+              </th>
             </tr>
           </thead>
           <tbody>
@@ -177,7 +183,7 @@ const SetVariantInfoTable = props => {
                     className={css.inputField}
                   />
                 </td>
-                <td>
+                <td className={css.tdImage}>
                   <FieldListingImage
                     className={css.variantImage}
                     key={`variantInfo.${rowIndex}.imageId`}
@@ -196,7 +202,8 @@ const SetVariantInfoTable = props => {
                       id={`variantInfo.${rowIndex}.imageId`}
                       name={`variantInfo.${rowIndex}.imageId`}
                       accept="image/*"
-                      className={css.inputField}
+                      className={classNames(css.inputField, css.addImage)}
+                      aspectClassName={css.aspectImage}
                       validate={validators.required(
                         intl.formatMessage({ id: 'EditListingVariantsForm.imageRequired' })
                       )}
@@ -592,7 +599,6 @@ export const EditListingVariantsForm = props => (
         variantsImages,
       } = formRenderProps;
       const intl = useIntl();
-      console.log({ variantsImages });
       const classes = classNames(rootClassName || css.root, className);
       const submitReady = (updated && pristine) || ready;
       const submitInProgress = updateInProgress;
@@ -602,8 +608,8 @@ export const EditListingVariantsForm = props => (
         submitInProgress ||
         !values.variantInfo ||
         values.variantInfo?.length === 0 ||
-        values.variantInfo?.some(variant => !variant.imageId || !variant.price);
-
+        values.variantInfo?.some(variant => !variant.imageId || !variant.price) ||
+        values.variantInfo?.some(variant => !!variant?.imageId?.file);
       const { updateListingError, showListingsError } = fetchErrors || {};
       const variants = values.variants || [];
       return (

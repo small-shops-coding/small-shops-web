@@ -85,9 +85,10 @@ const EditListingPhotosPanel = props => {
         onImageUpload={onImageUpload}
         onSubmit={values => {
           const { addImage, ...updateValues } = values;
-          const variantImages = listing?.attributes?.publicData?.variants?.map(variant => ({
-            id: new UUID(variant.imageId),
-          }));
+          const variantImages =
+            listing?.attributes?.publicData?.variants?.map(variant => ({
+              id: new UUID(variant.imageId),
+            })) || [];
           const submittedImages = [...updateValues.images, ...variantImages];
           onSubmit({ images: submittedImages });
         }}

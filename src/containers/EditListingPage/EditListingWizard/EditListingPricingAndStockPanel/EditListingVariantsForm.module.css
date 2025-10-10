@@ -1,3 +1,5 @@
+@import '../../../../styles/customMediaQueries.css';
+
 .addVariantButton {
   margin: 20px 0;
   width: fit-content;
@@ -79,6 +81,42 @@
   border: 1px solid var(--colorGrey100);
   padding: 10px;
   text-align: center;
+  width: 150px;
+  @media (--viewportMedium) {
+    width: 200px;
+  }
+}
+
+.variantInfoTableTable thead th:nth-child(1) {
+  width: 50px;
+}
+
+.thImage {
+  width: 100px !important;
+  @media (--viewportMedium) {
+    width: initial !important;
+  }
+}
+
+.thSku {
+  width: 200px !important;
+  @media (--viewportMedium) {
+    width: initial !important;
+  }
+}
+
+.thPrice {
+  width: 120px !important;
+  @media (--viewportMedium) {
+    width: initial !important;
+  }
+}
+
+.thStock {
+  width: 140px !important;
+  @media (--viewportMedium) {
+    width: initial !important;
+  }
 }
 
 .variantInfoTableTitle {
@@ -115,8 +153,16 @@
   gap: 15px;
 }
 
-.variantImage {
-  max-height: 200px;
+.variantImage,
+.addImage {
+  height: 100px;
+  @media (--viewportMedium) {
+    height: 200px;
+  }
+}
+
+.aspectImage {
+  height: 100%;
 }
 
 .root {
