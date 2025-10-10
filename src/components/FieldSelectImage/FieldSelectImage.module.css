@@ -1,0 +1,148 @@
+.labelDisabled {
+  opacity: 0.5;
+}
+
+.item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px;
+  cursor: pointer;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.itemDisabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.image {
+  width: 72px;
+  height: 72px;
+  object-fit: cover;
+  border-radius: 4px;
+}
+
+.itemLabel {
+  margin-top: 6px;
+  font-size: 14px;
+}
+
+.inputError {
+  color: var(--colorFail);
+}
+
+/* Dropdown styles */
+.dropdown {
+  position: relative;
+}
+
+.trigger {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px;
+  border: 1px solid var(--colorGrey100);
+  border-radius: 6px;
+  background: #fff;
+  cursor: pointer;
+}
+
+.triggerContent {
+  display: inline-flex;
+  width: 100%;
+  height: 100%;
+  align-items: center;
+  gap: 8px;
+}
+
+.selectedLabel {
+  font-size: 14px;
+}
+
+.placeholder {
+  color: #888;
+}
+
+.menu {
+  position: absolute;
+  z-index: 20;
+  margin-top: 6px;
+  left: 0;
+  right: 0;
+  max-height: 320px;
+  overflow: auto;
+  background: var(--colorWhite);
+  border: 1px solid var(--colorGrey100);
+  border-radius: 6px;
+  padding: 8px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.8);
+}
+
+.option {
+  display: flex;
+  margin-bottom: 8px;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  text-align: left;
+  padding: 6px;
+  border: 1px solid var(--colorGrey100);
+  border-radius: 6px;
+  cursor: pointer;
+  transition: border-color 120ms ease, box-shadow 120ms ease;
+}
+
+.option:hover {
+  border: 1px solid var(--colorGrey300);
+}
+
+.optionSelected {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.menuFixed {
+  position: fixed;
+  z-index: 1000;
+  max-height: 320px;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid var(--marketplaceColorBorders, #ddd);
+  border-radius: 6px;
+  padding: 8px;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.4);
+  display: none;
+}
+
+.menuFixedOpen {
+  display: block;
+}
+
+.thumbnail {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.aspectRatioWrapper {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.placeholder {
+  width: 100%;
+  height: 100%;
+}
+
+.triggerPlaceholder {
+  border: 1px dashed var(--colorGrey100);
+  min-height: 120px;
+}
+
+.triggerError {
+  border: 1px solid var(--colorFail);
+}

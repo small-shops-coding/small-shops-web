@@ -1278,5 +1278,7 @@
   "ProfileSettingsForm.openingHoursPlaceholder": "Enter your opening hours…",
   "ProfilePage.shopOpeningHours": "Opening hours",
   "ProfilePage.shopPhoneNumber": "Phone number",
-  "ProfilePage.shopWebsite": "Website"
+  "ProfilePage.shopWebsite": "Website",
+  "FieldSelectImage.savedImageAltText": "Saved image",
+  "FieldSelectImage.placeholder": "Select an image"
 }

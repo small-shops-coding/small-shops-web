@@ -96,6 +96,7 @@ export { default as FieldRadioButton } from './FieldRadioButton/FieldRadioButton
 export { default as FieldReviewRating } from './FieldReviewRating/FieldReviewRating';
 export { default as FieldSelect } from './FieldSelect/FieldSelect';
 export { default as FieldSelectTree } from './FieldSelectTree/FieldSelectTree';
+export { default as FieldSelectImage } from './FieldSelectImage/FieldSelectImage';
 export { default as FieldTextInput } from './FieldTextInput/FieldTextInput';
 export { default as FieldMediaUpload } from './FieldMediaUpload/FieldMediaUpload';
 export { default as FieldQuantity } from './FieldQuantity/FieldQuantity';

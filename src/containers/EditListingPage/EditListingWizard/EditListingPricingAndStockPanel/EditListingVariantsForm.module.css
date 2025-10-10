@@ -92,30 +92,30 @@
 }
 
 .thImage {
-  width: 100px !important;
+  width: 60px !important;
   @media (--viewportMedium) {
-    width: initial !important;
+    width: 120px !important;
   }
 }
 
 .thSku {
-  width: 200px !important;
+  width: 120px !important;
   @media (--viewportMedium) {
-    width: initial !important;
+    width: 150px !important;
   }
 }
 
 .thPrice {
   width: 120px !important;
   @media (--viewportMedium) {
-    width: initial !important;
+    width: 150px !important;
   }
 }
 
 .thStock {
   width: 140px !important;
   @media (--viewportMedium) {
-    width: initial !important;
+    width: 170px !important;
   }
 }
 
