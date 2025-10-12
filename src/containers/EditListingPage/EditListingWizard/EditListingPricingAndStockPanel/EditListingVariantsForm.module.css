@@ -63,7 +63,15 @@
 }
 
 .submitButton {
-  margin-top: 20px;
+  margin-top: auto;
+  margin-bottom: 24px;
+  flex-shrink: 0;
+
+  @media (--viewportLarge) {
+    display: inline-block;
+    width: 241px;
+    margin-top: 20px;
+  }
 }
 
 .variantInfoTable {
@@ -144,7 +152,14 @@
 
 .nextButton,
 .backButton {
-  max-width: 200px;
+  margin-top: auto;
+  flex-shrink: 0;
+
+  @media (--viewportLarge) {
+    display: inline-block;
+    width: 241px;
+    margin-top: 20px;
+  }
 }
 
 .variantTypeStep {

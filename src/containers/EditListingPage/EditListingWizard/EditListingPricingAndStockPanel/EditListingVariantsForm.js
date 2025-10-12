@@ -1,18 +1,17 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { Field, Form as FinalForm } from 'react-final-form';
-import arrayMutators from 'final-form-arrays';
 import classNames from 'classnames';
+import arrayMutators from 'final-form-arrays';
+import { useMemo, useState } from 'react';
+import { Form as FinalForm } from 'react-final-form';
 
 // Import configs and util modules
+import { formatMoney } from '../../../../util/currency';
 import { FormattedMessage, useIntl } from '../../../../util/reactIntl';
+import { types as sdkTypes } from '../../../../util/sdkLoader';
 import { propTypes } from '../../../../util/types';
 import * as validators from '../../../../util/validators';
-import { formatMoney } from '../../../../util/currency';
-import { types as sdkTypes } from '../../../../util/sdkLoader';
 
 // Import shared components
 import {
-  Button,
   FieldCurrencyInput,
   FieldQuantity,
   FieldSelect,
@@ -21,13 +20,14 @@ import {
   Form,
   IconDelete,
   InlineTextButton,
+  PrimaryButton,
   SecondaryButton,
 } from '../../../../components';
 
 // Import modules from this directory
-import css from './EditListingVariantsForm.module.css';
-import { COLOR_ENUMS, MATERIAL_ENUMS, SIZE_ENUMS } from '../../../../util/variants';
 import appSettings from '../../../../config/settings';
+import { COLOR_ENUMS, MATERIAL_ENUMS, SIZE_ENUMS } from '../../../../util/variants';
+import css from './EditListingVariantsForm.module.css';
 
 const { Money } = sdkTypes;
 
@@ -485,7 +485,7 @@ const RenderVariantsSettings = props => {
         </SecondaryButton>
       )}
       {step === 2 && (
-        <Button
+        <PrimaryButton
           className={css.submitButton}
           type="submit"
           inProgress={submitInProgress}
@@ -493,7 +493,7 @@ const RenderVariantsSettings = props => {
           ready={submitReady}
         >
           {saveActionMsg}
-        </Button>
+        </PrimaryButton>
       )}
     </div>
   );
@@ -565,9 +565,9 @@ export const EditListingVariantsForm = props => (
         !values.variantInfo ||
         values.variantInfo?.length === 0 ||
         values.variantInfo?.some(variant => !variant.imageId || !variant.price);
-      console.log(values.variantInfo);
       const { updateListingError, showListingsError } = fetchErrors || {};
       const variants = values.variants || [];
+
       return (
         <Form onSubmit={handleSubmit} className={classes}>
           {updateListingError ? (
