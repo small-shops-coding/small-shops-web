@@ -49,7 +49,7 @@ class DynamicGoogleMap extends Component {
         // Disable map type (ie. Satellite etc.)
         mapTypeControl: false,
         // Disable zooming by scrolling
-        scrollwheel: false,
+        scrollwheel: true,
         // Fullscreen control toggle
         fullscreenControl: false,
         // Street View control
