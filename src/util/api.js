@@ -152,3 +152,7 @@ export const createUserWithIdp = body => {
 export const generatePresignedUrl = body => {
   return post('/api/presigned-url', body);
 };
+
+export const updateShopNameListings = body => {
+  return post('/api/update-shop-name-listings', body);
+};

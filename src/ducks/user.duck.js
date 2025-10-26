@@ -432,3 +432,6 @@ export const sendVerificationEmail = () => (dispatch, getState, sdk) => {
     .then(() => dispatch(sendVerificationEmailSuccess()))
     .catch(e => dispatch(sendVerificationEmailError(storableError(e))));
 };
+
+export const currentUserDisplayNameSelector = state =>
+  state.user?.currentUser?.attributes?.profile?.displayName || '';

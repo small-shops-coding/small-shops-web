@@ -22,6 +22,7 @@ const { authenticateFacebook, authenticateFacebookCallback } = require('./api/au
 const { authenticateGoogle, authenticateGoogleCallback } = require('./api/auth/google');
 const generatePresignedUrl = require('./api/presigned-url');
 const middleware = require('./middleware');
+const updateShopNameListings = require('./api/update-shop-name-listings');
 
 const router = express.Router();
 
@@ -57,6 +58,7 @@ router.post('/transaction-line-items', transactionLineItems);
 router.post('/initiate-privileged', initiatePrivileged);
 router.post('/transition-privileged', transitionPrivileged);
 router.post('/presigned-url', middleware.auth, generatePresignedUrl);
+router.post('/update-shop-name-listings', middleware.auth, updateShopNameListings);
 
 // Create user with identity provider (e.g. Facebook or Google)
 // This endpoint is called to create a new user after user has confirmed

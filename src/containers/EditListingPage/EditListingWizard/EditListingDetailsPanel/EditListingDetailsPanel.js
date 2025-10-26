@@ -23,6 +23,8 @@ import { H3, ListingLink } from '../../../../components';
 import ErrorMessage from './ErrorMessage';
 import EditListingDetailsForm from './EditListingDetailsForm';
 import css from './EditListingDetailsPanel.module.css';
+import { useSelector } from 'react-redux';
+import { currentUserDisplayNameSelector } from '../../../../ducks/user.duck';
 
 /**
  * Get listing configuration. For existing listings, it is stored to publicData.
@@ -268,6 +270,7 @@ const getInitialValues = (
  * @returns {JSX.Element}
  */
 const EditListingDetailsPanel = props => {
+  const displayName = useSelector(currentUserDisplayNameSelector);
   const {
     className,
     rootClassName,
@@ -375,6 +378,8 @@ const EditListingDetailsPanel = props => {
                 unitType,
                 ...cleanedNestedCategories,
                 ...publicListingFields,
+                categoryText: Object.values(cleanedNestedCategories).join(', '),
+                shopName: displayName,
               },
               privateData: privateListingFields,
               ...setNoAvailabilityForUnbookableListings(transactionProcessAlias),

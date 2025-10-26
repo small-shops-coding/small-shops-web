@@ -12,6 +12,7 @@ async function auth(req, res, next) {
     }
 
     req.tokenUserId = currentUser.id.uuid;
+    req.displayName = currentUser.attributes.profile.displayName;
 
     next();
   } catch (error) {

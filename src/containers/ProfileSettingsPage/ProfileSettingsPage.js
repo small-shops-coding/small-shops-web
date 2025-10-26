@@ -25,6 +25,7 @@ import ProfileSettingsForm from './ProfileSettingsForm/ProfileSettingsForm';
 
 import { updateProfile, uploadImage } from './ProfileSettingsPage.duck';
 import css from './ProfileSettingsPage.module.css';
+import { updateShopNameListings } from '../../util/api';
 
 const { LatLng } = sdkTypes;
 
@@ -148,6 +149,14 @@ export const ProfileSettingsPageComponent = props => {
         : profile;
 
     onUpdateProfile(updatedValues);
+
+    //check if display name has changed
+    if (displayName !== currentUser.attributes.profile.displayName) {
+      updateShopNameListings({}).catch(e => {
+        console.error('Updating shop name listings failed');
+        console.error(e);
+      });
+    }
   };
 
   const user = ensureCurrentUser(currentUser);
@@ -302,11 +311,8 @@ const mapDispatchToProps = dispatch => ({
   onUpdateProfile: data => dispatch(updateProfile(data)),
 });
 
-const ProfileSettingsPage = compose(
-  connect(
-    mapStateToProps,
-    mapDispatchToProps
-  )
-)(ProfileSettingsPageComponent);
+const ProfileSettingsPage = compose(connect(mapStateToProps, mapDispatchToProps))(
+  ProfileSettingsPageComponent
+);
 
 export default ProfileSettingsPage;
