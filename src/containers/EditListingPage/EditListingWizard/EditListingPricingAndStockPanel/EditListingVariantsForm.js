@@ -114,7 +114,7 @@ const SetVariantInfoTable = props => {
             <tr>
               <th>{intl.formatMessage({ id: 'EditListingVariantsForm.no' })}</th>
               {variants.map(variant => (
-                <th key={variant.id} style={{ width: variant.type === 'material' ? '300px' : '' }}>
+                <th key={variant.id} style={{ width: variant.type === 'material' ? '80px' : '' }}>
                   <span>{getVariantTypeLabel(variant.type)}</span>
                 </th>
               ))}
@@ -165,9 +165,10 @@ const SetVariantInfoTable = props => {
                 </td>
                 <td className={css.tdImage}>
                   <FieldSelectImage
+                    itemClassName={css.imageItem}
                     hideErrorMessage
                     name={`variantInfo.${rowIndex}.imageId`}
-                    className={css.inputField}
+                    className={classNames(css.inputField, css.imageField)}
                     options={images}
                     listingImageConfig={listingImageConfig}
                     intl={intl}

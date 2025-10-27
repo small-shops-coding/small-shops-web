@@ -161,7 +161,7 @@ const FieldSelectImageComponent = props => {
       <div className={css.dropdown}>
         <button
           type="button"
-          className={classNames(css.trigger, {
+          className={classNames(css.trigger, itemClassName, {
             [css.triggerPlaceholder]: !selectedOption,
             [css.triggerError]: hasError,
           })}
