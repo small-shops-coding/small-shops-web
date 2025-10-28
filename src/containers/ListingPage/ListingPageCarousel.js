@@ -330,6 +330,7 @@ export const ListingPageComponent = props => {
     : null;
 
   const selectedVariantImageId = selectedVariantFromListing?.imageId;
+  const selectedVariantPrice = selectedVariantFromListing?.priceAsSubunits;
 
   const { pickupEnabled, shippingEnabled } = currentListing?.attributes?.publicData || {};
 
@@ -503,6 +504,7 @@ export const ListingPageComponent = props => {
               marketplaceName={config.marketplaceName}
               showListingImage={showListingImage}
               listingFieldConfigs={config.listing.listingFields}
+              selectedVariantPrice={selectedVariantPrice}
             />
           </div>
         </div>
