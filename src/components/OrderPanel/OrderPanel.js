@@ -32,9 +32,11 @@ import {
   isPurchaseProcess,
   resolveLatestProcessName,
 } from '../../transactions/transaction';
-
+import { types as sdkTypes } from '../../util/sdkLoader';
 import { ModalInMobile, PrimaryButton, AvatarSmall, H1, H2 } from '../../components';
 import PriceVariantPicker from './PriceVariantPicker/PriceVariantPicker';
+
+const { Money } = sdkTypes;
 
 import css from './OrderPanel.module.css';
 
@@ -136,6 +138,7 @@ const PriceMaybe = props => {
     intl,
     marketplaceCurrency,
     showCurrencyMismatch = false,
+    selectedVariantPrice,
   } = props;
   const { listingType, unitType } = publicData || {};
 
@@ -148,10 +151,20 @@ const PriceMaybe = props => {
     return null;
   }
 
+  const variantPrice = selectedVariantPrice
+    ? new Money(selectedVariantPrice, marketplaceCurrency)
+    : null;
   // Get formatted price or currency code if the currency does not match with marketplace currency
-  const { formattedPrice, priceTitle } = priceData(price, marketplaceCurrency, intl);
+  const { formattedPrice, priceTitle } = priceData(
+    variantPrice || price,
+    marketplaceCurrency,
+    intl
+  );
+
   const priceValue = (
-    <span className={css.priceValue}>{formatMoneyIfSupportedCurrency(price, intl)}</span>
+    <span className={css.priceValue}>
+      {formatMoneyIfSupportedCurrency(variantPrice || price, intl)}
+    </span>
   );
   const pricePerUnit = (
     <span className={css.perUnit}>
@@ -260,7 +273,7 @@ const hasValidPriceVariants = priceVariants => {
  * @param {number} props.dayCountAvailableForBooking - Number of days available for booking
  * @param {string} props.marketplaceName - Name of the marketplace
  * @param {Object} [props.listingFieldConfigs] - Listing field configs
- *
+ * @param {Money} [props.selectedVariantPrice] - The price of the selected variant
  * @returns {JSX.Element} Component that displays the order panel with appropriate form
  */
 const OrderPanel = props => {
@@ -301,6 +314,7 @@ const OrderPanel = props => {
     showListingImage,
     listingFieldConfigs,
     onSetSelectedVariant,
+    selectedVariantPrice,
   } = props;
 
   const publicData = listing?.attributes?.publicData || {};
@@ -415,6 +429,7 @@ const OrderPanel = props => {
   const classes = classNames(rootClassName || css.root, className);
   const titleClasses = classNames(titleClassName || css.orderTitle);
   const variants = listing?.attributes?.publicData?.variants || [];
+
   return (
     <div className={classes}>
       <ModalInMobile
@@ -439,6 +454,7 @@ const OrderPanel = props => {
 
         <PriceMaybe
           price={price}
+          selectedVariantPrice={selectedVariantPrice}
           publicData={publicData}
           validListingTypes={validListingTypes}
           intl={intl}
@@ -528,6 +544,7 @@ const OrderPanel = props => {
       <div className={css.openOrderForm}>
         <PriceMaybe
           price={price}
+          selectedVariantPrice={selectedVariantPrice}
           publicData={publicData}
           validListingTypes={validListingTypes}
           intl={intl}
